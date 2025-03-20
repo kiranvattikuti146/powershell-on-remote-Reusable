@@ -3,6 +3,22 @@ name: VSBuild Reusable Workflow
 on:
   workflow_call:
     inputs:
+      logProjectEvents:
+        required: false
+        type: boolean
+        default: false
+      vsVersion:
+        required: false
+        type: string
+        default: "latest"
+      enableDefaultLogger:
+        required: false
+        type: boolean
+        default: false
+      restoreNugetArgs:
+        required: false
+        type: string
+        default: ""
       platform:
         required: true
         type: string
@@ -19,7 +35,7 @@ on:
         required: false
         type: boolean
         default: false
-      msbuildArguments:
+      vsbuildArguments:
         required: false
         type: string
         default: ""
@@ -31,22 +47,6 @@ on:
         required: false
         type: string
         default: "minimal"
-      vsVersion:
-        required: false
-        type: string
-        default: "latest"
-      enableDefaultLogger:
-        required: false
-        type: boolean
-        default: false
-      restoreNugetArgs:
-        required: false
-        type: string
-        default: ""
-      logProjectEvents:
-        required: false
-        type: boolean
-        default: false
 
 jobs:
   build:
@@ -82,7 +82,7 @@ jobs:
 
       - name: Build Solution with VS Build
         run: |
-          $vsbuildCmd = "msbuild `"$env:SOLUTION_PATH`" /p:Platform=`"${{ inputs.platform }}`" /p:Configuration=${{ inputs.configuration }} /m:${{ inputs.maxCpu }} ${{ inputs.msbuildArguments }}"
+          $vsbuildCmd = "msbuild `"$env:SOLUTION_PATH`" /p:Platform=`"${{ inputs.platform }}`" /p:Configuration=${{ inputs.configuration }} /m:${{ inputs.maxCpu }} ${{ inputs.vsbuildArguments }}"
           
           if (${{ inputs.clean }}) {
             $vsbuildCmd += " /t:Clean,Build"
