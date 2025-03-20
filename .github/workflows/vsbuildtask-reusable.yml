@@ -43,6 +43,10 @@ on:
         required: false
         type: string
         default: ""
+      logProjectEvents:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -79,16 +83,24 @@ jobs:
       - name: Build Solution with VS Build
         run: |
           $vsbuildCmd = "msbuild `"$env:SOLUTION_PATH`" /p:Platform=`"${{ inputs.platform }}`" /p:Configuration=${{ inputs.configuration }} /m:${{ inputs.maxCpu }} ${{ inputs.msbuildArguments }}"
+          
           if (${{ inputs.clean }}) {
             $vsbuildCmd += " /t:Clean,Build"
           }
+          
           if (${{ inputs.createLogFile }}) {
             $logFile = "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\build.log"
             $vsbuildCmd += " /fl /flp:logfile=`"$logFile`";verbosity=${{ inputs.logFileVerbosity }}"
           }
+          
           if (${{ inputs.enableDefaultLogger }}) {
             $vsbuildCmd += " /logger:Microsoft.VisualStudio.TraceLogger,Microsoft.Build.Logging"
           }
+
+          if (${{ inputs.logProjectEvents }}) {
+            $vsbuildCmd += " /clp:PerformanceSummary;ErrorsOnly;WarningsOnly"
+          }
+
           Write-Host "Executing: $vsbuildCmd"
           Invoke-Expression $vsbuildCmd
         shell: pwsh
