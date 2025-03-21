@@ -1,106 +1,118 @@
-name: VSBuild Reusable Workflow
+name: VS Test Reusable Workflow
 
 on:
   workflow_call:
     inputs:
-      logProjectEvents:
-        required: false
-        type: boolean
-        default: false
-      vsVersion:
-        required: false
+      vsTestVersion:
+        required: true
         type: string
         default: "latest"
-      enableDefaultLogger:
-        required: false
-        type: boolean
-        default: false
-      restoreNugetArgs:
+      testAssembly:
+        required: true
+        type: string
+        default: "**/*Tests.dll"
+      testFilterCriteria:
         required: false
         type: string
         default: ""
-      platform:
-        required: true
+      runSettingsFile:
+        required: false
         type: string
-        default: "Any CPU"
+        default: ""
+      codeCoverageEnabled:
+        required: false
+        type: boolean
+        default: false
+      pathToCustomTestAdapters:
+        required: false
+        type: string
+        default: ""
+      overrideTestRunParameters:
+        required: false
+        type: string
+        default: ""
+      otherConsoleOptions:
+        required: false
+        type: string
+        default: ""
+      testRunTitle:
+        required: false
+        type: string
+        default: "Automated Test Run"
+      platform:
+        required: false
+        type: string
+        default: "x64"
       configuration:
-        required: true
+        required: false
         type: string
         default: "Release"
-      maxCpu:
+      publishRunAttachments:
         required: false
-        type: number
-        default: 8
-      clean:
+        type: boolean
+        default: true
+      runInParallel:
         required: false
         type: boolean
         default: false
-      vsbuildArguments:
+      vsTestLocationMethod:
+        required: false
+        type: string
+        default: "auto"
+      vsTestLocation:
         required: false
         type: string
         default: ""
-      createLogFile:
-        required: false
-        type: boolean
-        default: false
-      logFileVerbosity:
-        required: false
-        type: string
-        default: "minimal"
 
 jobs:
-  build:
+  test:
     runs-on: windows-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Visual Studio
-        uses: microsoft/setup-msbuild@v1
-        with:
-          vs-version: ${{ inputs.vsVersion }}
-
-      - name: Locate Solution File
-        id: find_sln
+      - name: Setup Visual Studio Test Platform
         run: |
-          $solution = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter "*.sln" | Select-Object -ExpandProperty FullName
-          if ($solution) {
-            Write-Output "SOLUTION_PATH=$solution" | Out-File -FilePath $env:GITHUB_ENV -Append
-            echo "Solution file found: $solution"
-          } else {
-            echo "No solution file found!"
-            exit 1
-          }
+          echo "Setting up Visual Studio Test Platform Version: ${{ inputs.vsTestVersion }}"
         shell: pwsh
 
-      - name: Restore NuGet Packages
-        run: nuget restore "%SOLUTION_PATH%" ${{ inputs.restoreNugetArgs }}
-        shell: cmd
-
-      - name: Build Solution with VS Build
+      - name: Run Tests with VSTest
         run: |
-          $vsbuildCmd = "msbuild `"$env:SOLUTION_PATH`" /p:Platform=`"${{ inputs.platform }}`" /p:Configuration=${{ inputs.configuration }} /m:${{ inputs.maxCpu }} ${{ inputs.vsbuildArguments }}"
+          $testCommand = "vstest.console.exe `"$env:GITHUB_WORKSPACE\${{ inputs.testAssembly }}`""
           
-          if (${{ inputs.clean }}) {
-            $vsbuildCmd += " /t:Clean,Build"
-          }
-          
-          if (${{ inputs.createLogFile }}) {
-            $logFile = "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\build.log"
-            $vsbuildCmd += " /fl /flp:logfile=`"$logFile`";verbosity=${{ inputs.logFileVerbosity }}"
+          if ("${{ inputs.testFilterCriteria }}" -ne "") {
+            $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
           }
           
-          if (${{ inputs.enableDefaultLogger }}) {
-            $vsbuildCmd += " /logger:Microsoft.VisualStudio.TraceLogger,Microsoft.Build.Logging"
+          if ("${{ inputs.runSettingsFile }}" -ne "") {
+            $testCommand += " /Settings:${{ inputs.runSettingsFile }}"
           }
-
-          if (${{ inputs.logProjectEvents }}) {
-            $vsbuildCmd += " /clp:PerformanceSummary;ErrorsOnly;WarningsOnly"
+          
+          if (${{ inputs.codeCoverageEnabled }}) {
+            $testCommand += " /EnableCodeCoverage"
           }
-
-          Write-Host "Executing: $vsbuildCmd"
-          Invoke-Expression $vsbuildCmd
+          
+          if ("${{ inputs.pathToCustomTestAdapters }}" -ne "") {
+            $testCommand += " /TestAdapterPath:${{ inputs.pathToCustomTestAdapters }}"
+          }
+          
+          if ("${{ inputs.overrideTestRunParameters }}" -ne "") {
+            $testCommand += " /TestRunParameters:${{ inputs.overrideTestRunParameters }}"
+          }
+          
+          if ("${{ inputs.otherConsoleOptions }}" -ne "") {
+            $testCommand += " ${{ inputs.otherConsoleOptions }}"
+          }
+          
+          if (${{ inputs.publishRunAttachments }}) {
+            $testCommand += " /EnableLog:${{ inputs.testRunTitle }}"
+          }
+          
+          if (${{ inputs.runInParallel }}) {
+            $testCommand += " /Parallel"
+          }
+          
+          echo "Running: $testCommand"
+          Invoke-Expression $testCommand
         shell: pwsh
