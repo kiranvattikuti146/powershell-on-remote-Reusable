@@ -68,11 +68,25 @@ jobs:
           Write-Host "✅ VSTest Console Path: $vsTestPath"
         shell: pwsh
 
-      - name: Build the Solution (Optional - Add if Needed)
+      - name: Build the Solution
         run: |
+          Write-Host "🔄 Locating msbuild..."
+          $vswherePath = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-Not (Test-Path $vswherePath)) {
+            Write-Host "❌ vswhere.exe not found!"
+            exit 1
+          }
+
+          $msbuildPath = & $vswherePath -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
+          if (-not $msbuildPath) {
+            Write-Host "❌ msbuild not found! Ensure Visual Studio Build Tools are installed."
+            exit 1
+          }
+
+          Write-Host "✅ msbuild found at: $msbuildPath"
           Write-Host "🔄 Building the solution..."
-          msbuild /t:Build /p:Configuration=Release
-        shell: cmd
+          & $msbuildPath /t:Build /p:Configuration=Release
+        shell: pwsh
 
       - name: Locate Test Assemblies
         id: find_tests
@@ -95,7 +109,7 @@ jobs:
 
       - name: Run Tests with VSTest
         run: |
-          $testCommand = "`"$env:VSTEST_CONSOLE`" `"$env:TEST_ASSEMBLIES`""
+          $testCommand = "`"$env:VSTEST_CONSOLE`" `"$env:TEST_ASSEMBLIES`"" 
           if ("${{ inputs.testFilterCriteria }}" -ne "") {
             $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
           }
