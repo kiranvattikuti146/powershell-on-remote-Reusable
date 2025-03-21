@@ -51,8 +51,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Visual Studio Test Platform
-        run: choco install vstest.console --no-progress
+      - name: Find VSTest Console Path
+        id: find_vstest
+        run: |
+          $vswherePath = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-Not (Test-Path $vswherePath)) {
+            Write-Host "❌ vswhere.exe not found!"
+            exit 1
+          }
+          $vsTestPath = & $vswherePath -latest -products * -requires Microsoft.VisualStudio.PackageGroup.TestTools.Core -find **\Common7\IDE\Extensions\TestPlatform\vstest.console.exe
+          if (-Not $vsTestPath) {
+            Write-Host "❌ vstest.console.exe not found!"
+            exit 1
+          }
+          Write-Output "VSTEST_CONSOLE=$vsTestPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "✅ VSTest Console Path: $vsTestPath"
         shell: pwsh
 
       - name: Locate Test Assemblies
