@@ -72,14 +72,26 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Visual Studio Test Platform
+      - name: Install Visual Studio Test Platform
         run: |
-          echo "Setting up Visual Studio Test Platform Version: ${{ inputs.vsTestVersion }}"
+          echo "Installing Visual Studio Test Platform..."
+          choco install vstest.console -y
+        shell: pwsh
+
+      - name: Locate VSTest Console
+        id: find_vstest
+        run: |
+          $vsTestPath = Get-Command "vstest.console.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+          if (-not $vsTestPath) {
+            $vsTestPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
+          }
+          echo "VSTEST_CONSOLE=$vsTestPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using VSTest: $vsTestPath"
         shell: pwsh
 
       - name: Run Tests with VSTest
         run: |
-          $testCommand = "vstest.console.exe `"$env:GITHUB_WORKSPACE\${{ inputs.testAssembly }}`""
+          $testCommand = "`"$env:VSTEST_CONSOLE`" `"$env:GITHUB_WORKSPACE\${{ inputs.testAssembly }}`""
           
           if ("${{ inputs.testFilterCriteria }}" -ne "") {
             $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
@@ -113,6 +125,6 @@ jobs:
             $testCommand += " /Parallel"
           }
           
-          echo "Running: $testCommand"
+          Write-Host "Running: $testCommand"
           Invoke-Expression $testCommand
         shell: pwsh
