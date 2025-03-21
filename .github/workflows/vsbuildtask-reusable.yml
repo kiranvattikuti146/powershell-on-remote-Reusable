@@ -3,6 +3,12 @@ name: VS Build Reusable Workflow
 on:
   workflow_call:
     inputs:
+      vsTestVersion:
+        required: true
+        type: string
+      testAssembly:
+        required: true
+        type: string
       testFilterCriteria:
         required: false
         type: string
@@ -43,9 +49,9 @@ jobs:
       - name: Locate Test Assemblies
         id: find_tests
         run: |
-          $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "*Tests.dll" | ForEach-Object { $_.FullName }
+          $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "${{ inputs.testAssembly }}" | ForEach-Object { $_.FullName }
           if (-not $testAssemblies) {
-            Write-Host "No test assemblies found matching pattern '*Tests.dll'"
+            Write-Host "❌ No test assemblies found matching pattern '${{ inputs.testAssembly }}'"
             exit 1
           }
           Write-Output "TEST_ASSEMBLIES=$($testAssemblies -join ';')" | Out-File -FilePath $env:GITHUB_ENV -Append
