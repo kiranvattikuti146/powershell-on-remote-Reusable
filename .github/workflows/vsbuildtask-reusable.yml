@@ -1,3 +1,5 @@
+name: VS Build Reusable Workflow
+
 on:
   workflow_call:
     inputs:
@@ -25,3 +27,48 @@ on:
       testRunTitle:
         required: false
         type: string
+
+jobs:
+  run-tests:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Visual Studio Test Platform
+        run: choco install vstest.console --no-progress
+        shell: pwsh
+
+      - name: Locate Test Assemblies
+        id: find_tests
+        run: |
+          $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "*Tests.dll" | ForEach-Object { $_.FullName }
+          if (-not $testAssemblies) {
+            Write-Host "No test assemblies found matching pattern '*Tests.dll'"
+            exit 1
+          }
+          Write-Output "TEST_ASSEMBLIES=$($testAssemblies -join ';')" | Out-File -FilePath $env:GITHUB_ENV -Append
+        shell: pwsh
+
+      - name: Run Tests with VSTest
+        run: |
+          $testCommand = "`"$env:VSTEST_CONSOLE`" `"$env:TEST_ASSEMBLIES`""
+          if ("${{ inputs.testFilterCriteria }}" -ne "") {
+            $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
+          }
+          if ("${{ inputs.runSettingsFile }}" -ne "") {
+            $testCommand += " /Settings:${{ inputs.runSettingsFile }}"
+          }
+          if ("${{ inputs.codeCoverageEnabled }}" -eq "true") {
+            $testCommand += " /EnableCodeCoverage"
+          }
+          if ("${{ inputs.publishRunAttachments }}" -eq "true") {
+            $testCommand += " /PublishRunAttachments"
+          }
+          if ("${{ inputs.runInParallel }}" -eq "true") {
+            $testCommand += " /Parallel"
+          }
+          Write-Host "Running: $testCommand"
+          Invoke-Expression $testCommand
+        shell: pwsh
