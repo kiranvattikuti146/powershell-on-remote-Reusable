@@ -1,100 +1,27 @@
-name: VS Test Workflow
-
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  test:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1
-
-      - name: Restore NuGet Packages
-        run: nuget restore YourSolution.sln
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1
-
-      - name: Build Solution
-        run: msbuild YourSolution.sln /p:Configuration=Release
-
-      - name: Locate VSTest Console
-        id: find_vstest
-        run: |
-          $possiblePaths = @(
-            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\Extensions\TestPlatform\vstest.console.exe",
-            "C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\TestPlatform\vstest.console.exe",
-            "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
-          )
-
-          $vsTestPath = $possiblePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-          if (-not $vsTestPath) {
-            Write-Host "❌ VSTest.Console.exe not found!"
-            exit 1
-          }
-
-          echo "VSTEST_CONSOLE=$vsTestPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Write-Host "✅ Found VSTest: $vsTestPath"
-        shell: pwsh
-
-      - name: Find Test Assemblies
-        id: find_tests
-        run: |
-          $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "*Tests.dll" | Where-Object { $_.FullName -match "bin\\Release" } | ForEach-Object { $_.FullName }
-
-          if ($testAssemblies.Count -eq 0) {
-            Write-Host "❌ No test assemblies found! Make sure your test projects are built."
-            exit 1
-          }
-
-          $testAssembliesString = $testAssemblies -join ' '
-          echo "TEST_ASSEMBLIES=$testAssembliesString" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Write-Host "✅ Found Test Assemblies: $testAssembliesString"
-        shell: pwsh
-
-      - name: Run Tests with VSTest
-        run: |
-          $testCommand = "`"$env:VSTEST_CONSOLE`" $env:TEST_ASSEMBLIES"
-
-          if ("${{ inputs.testFilterCriteria }}" -ne "") {
-            $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
-          }
-          
-          if ("${{ inputs.runSettingsFile }}" -ne "") {
-            $testCommand += " /Settings:${{ inputs.runSettingsFile }}"
-          }
-          
-          if (${{ inputs.codeCoverageEnabled }}) {
-            $testCommand += " /EnableCodeCoverage"
-          }
-          
-          if ("${{ inputs.pathToCustomTestAdapters }}" -ne "") {
-            $testCommand += " /TestAdapterPath:${{ inputs.pathToCustomTestAdapters }}"
-          }
-          
-          if ("${{ inputs.overrideTestRunParameters }}" -ne "") {
-            $testCommand += " /TestRunParameters:${{ inputs.overrideTestRunParameters }}"
-          }
-          
-          if (${{ inputs.publishRunAttachments }}) {
-            $testCommand += " /EnableLog:${{ inputs.testRunTitle }}"
-          }
-          
-          if (${{ inputs.runInParallel }}) {
-            $testCommand += " /Parallel"
-          }
-          
-          Write-Host "Running: $testCommand"
-          Invoke-Expression $testCommand
-        shell: pwsh
+  workflow_call:
+    inputs:
+      testFilterCriteria:
+        required: false
+        type: string
+      runSettingsFile:
+        required: false
+        type: string
+      codeCoverageEnabled:
+        required: false
+        type: boolean
+      pathToCustomTestAdapters:
+        required: false
+        type: string
+      overrideTestRunParameters:
+        required: false
+        type: string
+      publishRunAttachments:
+        required: false
+        type: boolean
+      runInParallel:
+        required: false
+        type: boolean
+      testRunTitle:
+        required: false
+        type: string
