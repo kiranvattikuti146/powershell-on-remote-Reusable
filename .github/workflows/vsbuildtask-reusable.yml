@@ -1,4 +1,4 @@
-name: VS Build Reusable Workflow
+name: VS Build & Test Reusable Workflow
 
 on:
   workflow_call:
@@ -24,12 +24,9 @@ on:
       overrideTestRunParameters:
         required: false
         type: string
-      publishRunAttachments:
+      otherConsoleOptions:
         required: false
-        type: boolean
-      runInParallel:
-        required: false
-        type: boolean
+        type: string
       testRunTitle:
         required: false
         type: string
@@ -39,73 +36,53 @@ on:
       configuration:
         required: false
         type: string
-      otherConsoleOptions:
+      publishRunAttachments:
+        required: false
+        type: boolean
+      runInParallel:
+        required: false
+        type: boolean
+      vsTestLocationMethod:
+        required: false
+        type: string
+      vsTestLocation:
         required: false
         type: string
 
 jobs:
-  run-tests:
+  build-and-test:
     runs-on: windows-latest
-
     steps:
-      - name: Checkout Repository
+
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Find VSTest Console Path
-        id: find_vstest
-        run: |
-          $vswherePath = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
-          if (-Not (Test-Path $vswherePath)) {
-            Write-Host "❌ vswhere.exe not found!"
-            exit 1
-          }
-          $vsTestPath = & $vswherePath -latest -products * -requires Microsoft.VisualStudio.PackageGroup.TestTools.Core -find **\Common7\IDE\Extensions\TestPlatform\vstest.console.exe
-          if (-Not $vsTestPath) {
-            Write-Host "❌ vstest.console.exe not found!"
-            exit 1
-          }
-          Write-Output "VSTEST_CONSOLE=$vsTestPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Write-Host "✅ VSTest Console Path: $vsTestPath"
-        shell: pwsh
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1
+
+      - name: Restore NuGet Packages
+        run: nuget restore
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.3
+
+      - name: Build Solution
+        run: msbuild /p:Configuration=${{ inputs.configuration }}
 
       - name: Locate Test Assemblies
         id: find_tests
+        shell: pwsh
         run: |
-          $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "${{ inputs.testAssembly }}" | ForEach-Object { $_.FullName }
+          $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "*Tests.dll" | ForEach-Object { $_.FullName }
           if (-not $testAssemblies) {
-            Write-Host "❌ No test assemblies found matching pattern '${{ inputs.testAssembly }}'"
+            Write-Host "❌ No test assemblies found matching pattern '*Tests.dll'"
+            Write-Host "👉 Possible Reasons: No test projects were built or incorrect filter pattern."
+            Write-Host "📌 Solution: Ensure test projects are built before this step."
             exit 1
           }
           Write-Output "TEST_ASSEMBLIES=$($testAssemblies -join ';')" | Out-File -FilePath $env:GITHUB_ENV -Append
-        shell: pwsh
+          Write-Host "✅ Found test assemblies: $($testAssemblies -join ', ')"
 
       - name: Run Tests with VSTest
         run: |
-          $testCommand = "`"$env:VSTEST_CONSOLE`" `"$env:TEST_ASSEMBLIES`""
-          if ("${{ inputs.testFilterCriteria }}" -ne "") {
-            $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
-          }
-          if ("${{ inputs.runSettingsFile }}" -ne "") {
-            $testCommand += " /Settings:${{ inputs.runSettingsFile }}"
-          }
-          if ("${{ inputs.codeCoverageEnabled }}" -eq "true") {
-            $testCommand += " /EnableCodeCoverage"
-          }
-          if ("${{ inputs.publishRunAttachments }}" -eq "true") {
-            $testCommand += " /PublishRunAttachments"
-          }
-          if ("${{ inputs.runInParallel }}" -eq "true") {
-            $testCommand += " /Parallel"
-          }
-          if ("${{ inputs.platform }}" -ne "") {
-            $testCommand += " /Platform:${{ inputs.platform }}"
-          }
-          if ("${{ inputs.configuration }}" -ne "") {
-            $testCommand += " /Configuration:${{ inputs.configuration }}"
-          }
-          if ("${{ inputs.otherConsoleOptions }}" -ne "") {
-            $testCommand += " ${{ inputs.otherConsoleOptions }}"
-          }
-          Write-Host "Running: $testCommand"
-          Invoke-Expression $testCommand
-        shell: pwsh
+          $testCommand = "& `"
