@@ -6,6 +6,37 @@ on:
       dotnet-version:
         required: true
         type: string
+      vs-test-version:
+        required: false
+        type: string
+        default: "16.0"
+      test-assembly:
+        required: true
+        type: string
+      test-filter-criteria:
+        required: false
+        type: string
+        default: ""
+      run-settings-file:
+        required: false
+        type: string
+        default: ""
+      code-coverage-enabled:
+        required: false
+        type: boolean
+        default: false
+      run-in-parallel:
+        required: false
+        type: boolean
+        default: false
+      test-run-title:
+        required: false
+        type: string
+        default: "Automated Tests"
+      platform:
+        required: false
+        type: string
+        default: "x64"
       configuration:
         required: false
         type: string
@@ -24,7 +55,9 @@ jobs:
           dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Install Required .NET Workloads
-        run: dotnet workload install microsoft.net.sdk.test
+        run: |
+          dotnet workload install microsoft.net.sdk.test
+          dotnet tool install --global trx2junit
 
       - name: Restore Dependencies
         run: dotnet restore
@@ -33,4 +66,9 @@ jobs:
         run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
 
       - name: Run Tests with TRX Logger
-        run: dotnet test --logger "trx;LogFileName=test-results.trx"
+        run: |
+          dotnet test --configuration ${{ inputs.configuration }} `
+            --logger "trx;LogFileName=test-results.trx" `
+            --test-adapter-path:. `
+            --filter "${{ inputs.test-filter-criteria }}" `
+            ${{ inputs.test-assembly }}
