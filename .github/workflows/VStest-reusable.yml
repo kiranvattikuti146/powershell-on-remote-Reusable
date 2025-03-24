@@ -1,45 +1,75 @@
-name: Reusable .NET Test Workflow
+name: Reusable VS Test Workflow
 
 on:
   workflow_call:
     inputs:
       dotnet-version:
-        description: "The version of .NET to use"
         required: true
         type: string
-    secrets:
-      token:
+      vsTestVersion:
         required: true
+        type: string
+      testAssembly:
+        required: true
+        type: string
+      testFilterCriteria:
+        required: false
+        type: string
+      runSettingsFile:
+        required: false
+        type: string
+      codeCoverageEnabled:
+        required: false
+        type: boolean
+      pathToCustomTestAdapters:
+        required: false
+        type: string
+      overrideTestRunParameters:
+        required: false
+        type: string
+      publishRunAttachments:
+        required: false
+        type: boolean
+      runInParallel:
+        required: false
+        type: boolean
+      testRunTitle:
+        required: false
+        type: string
+      platform:
+        required: false
+        type: string
+      configuration:
+        required: false
+        type: string
+      otherConsoleOptions:
+        required: false
+        type: string
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
-      - name: Restore dependencies
+      - name: Restore Dependencies
         run: dotnet restore
 
-      - name: Build solution
-        run: dotnet build --configuration Release --no-restore
+      - name: Build Project
+        run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
 
-      - name: Discover and Run Tests
+      - name: Run Tests
         run: |
-          testAssemblies=$(find . -type f -name "*Tests.dll")
-          if [ -z "$testAssemblies" ]; then
-            echo "No test assemblies found!"
-            exit 1
-          fi
-          dotnet test --configuration Release --no-build --logger trx
-
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: Test-Results
-          path: TestResults/*.trx
+          dotnet test `
+            --filter "${{ inputs.testFilterCriteria }}" `
+            --settings "${{ inputs.runSettingsFile }}" `
+            --logger trx `
+            --configuration ${{ inputs.configuration }} `
+            --collect:"XPlat Code Coverage" `
+            ${{ inputs.otherConsoleOptions }}
