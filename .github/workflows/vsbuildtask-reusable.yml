@@ -56,52 +56,52 @@ jobs:
         run: |
           $vswherePath = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
           if (-Not (Test-Path $vswherePath)) {
-            Write-Host "❌ vswhere.exe not found!"
+            Write-Host "vswhere.exe not found!"
             exit 1
           }
           $vsTestPath = & $vswherePath -latest -products * -requires Microsoft.VisualStudio.PackageGroup.TestTools.Core -find **\Common7\IDE\Extensions\TestPlatform\vstest.console.exe
           if (-Not $vsTestPath) {
-            Write-Host "❌ vstest.console.exe not found!"
+            Write-Host "vstest.console.exe not found!"
             exit 1
           }
           Write-Output "VSTEST_CONSOLE=$vsTestPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Write-Host "✅ VSTest Console Path: $vsTestPath"
+          Write-Host "VSTest Console Path: $vsTestPath"
         shell: pwsh
 
       - name: Build the Solution
         run: |
-          Write-Host "🔄 Locating msbuild..."
+          Write-Host " Locating msbuild..."
           $vswherePath = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
           if (-Not (Test-Path $vswherePath)) {
-            Write-Host "❌ vswhere.exe not found!"
+            Write-Host "vswhere.exe not found!"
             exit 1
           }
 
           $msbuildPath = & $vswherePath -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
           if (-not $msbuildPath) {
-            Write-Host "❌ msbuild not found! Ensure Visual Studio Build Tools are installed."
+            Write-Host "msbuild not found! Ensure Visual Studio Build Tools are installed."
             exit 1
           }
 
-          Write-Host "✅ msbuild found at: $msbuildPath"
-          Write-Host "🔄 Building the solution..."
+          Write-Host " msbuild found at: $msbuildPath"
+          Write-Host " Building the solution..."
           & $msbuildPath /t:Build /p:Configuration=Release
         shell: pwsh
 
       - name: Locate Test Assemblies
         id: find_tests
         run: |
-          Write-Host "🔍 Searching for test assemblies with pattern: '${{ inputs.testAssembly }}'..."
+          Write-Host " Searching for test assemblies with pattern: '${{ inputs.testAssembly }}'..."
           $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "${{ inputs.testAssembly }}" | ForEach-Object { $_.FullName }
           
           if (-not $testAssemblies) {
-            Write-Host "❌ No test assemblies found matching pattern '${{ inputs.testAssembly }}'"
-            Write-Host "🔍 Available files in workspace:"
+            Write-Host " No test assemblies found matching pattern '${{ inputs.testAssembly }}'"
+            Write-Host " Available files in workspace:"
             Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse | ForEach-Object { Write-Host $_.FullName }
             exit 1
           }
 
-          Write-Host "✅ Found test assemblies:"
+          Write-Host "Found test assemblies:"
           $testAssemblies | ForEach-Object { Write-Host $_ }
           
           Write-Output "TEST_ASSEMBLIES=$($testAssemblies -join ';')" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -134,6 +134,6 @@ jobs:
           if ("${{ inputs.otherConsoleOptions }}" -ne "") {
             $testCommand += " ${{ inputs.otherConsoleOptions }}"
           }
-          Write-Host "🚀 Running: $testCommand"
+          Write-Host " Running: $testCommand"
           Invoke-Expression $testCommand
         shell: pwsh
