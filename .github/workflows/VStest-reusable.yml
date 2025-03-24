@@ -68,28 +68,9 @@ jobs:
           Write-Host "VSTest Console Path: $vsTestPath"
         shell: pwsh
 
-      - name: Locate Test Assemblies
-        id: find_tests
-        run: |
-          Write-Host " Searching for test assemblies with pattern: '${{ inputs.testAssembly }}'..."
-          $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "${{ inputs.testAssembly }}" | ForEach-Object { $_.FullName }
-          
-          if (-not $testAssemblies) {
-            Write-Host " No test assemblies found matching pattern '${{ inputs.testAssembly }}'"
-            Write-Host " Available files in workspace:"
-            Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse | ForEach-Object { Write-Host $_.FullName }
-            exit 1
-          }
-
-          Write-Host "Found test assemblies:"
-          $testAssemblies | ForEach-Object { Write-Host $_ }
-          
-          Write-Output "TEST_ASSEMBLIES=$($testAssemblies -join ';')" | Out-File -FilePath $env:GITHUB_ENV -Append
-        shell: pwsh
-
       - name: Run Tests with VSTest
         run: |
-          $testCommand = "`"$env:VSTEST_CONSOLE`" `"$env:TEST_ASSEMBLIES`"" 
+          $testCommand = "`"$env:VSTEST_CONSOLE`" `"${{ inputs.testAssembly }}`"" 
           if ("${{ inputs.testFilterCriteria }}" -ne "") {
             $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
           }
