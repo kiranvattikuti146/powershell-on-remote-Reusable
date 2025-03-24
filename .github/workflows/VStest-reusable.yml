@@ -68,17 +68,28 @@ jobs:
           Write-Host "VSTest Console Path: $vsTestPath"
         shell: pwsh
 
-      - name: Run Tests with VSTest
+      - name: Find Test Assemblies
+        id: find_tests
         run: |
-          # Resolve test assemblies using wildcard
+          Write-Host "Searching for test assemblies with pattern: '${{ inputs.testAssembly }}'..."
           $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "${{ inputs.testAssembly }}" | ForEach-Object { "`"$_`"" }
+          
           if (-not $testAssemblies) {
             Write-Host "No test assemblies found matching pattern '${{ inputs.testAssembly }}'"
+            Write-Host "Available files in workspace:"
+            Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse | ForEach-Object { Write-Host $_.FullName }
             exit 1
           }
 
-          # Build the test command
-          $testCommand = "`"$env:VSTEST_CONSOLE`" $testAssemblies"
+          Write-Host "Found test assemblies:"
+          $testAssemblies | ForEach-Object { Write-Host $_ }
+          
+          Write-Output "TEST_ASSEMBLIES=$($testAssemblies -join ' ')" | Out-File -FilePath $env:GITHUB_ENV -Append
+        shell: pwsh
+
+      - name: Run Tests with VSTest
+        run: |
+          $testCommand = "`"$env:VSTEST_CONSOLE`" $env:TEST_ASSEMBLIES"
           
           if ("${{ inputs.testFilterCriteria }}" -ne "") {
             $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
