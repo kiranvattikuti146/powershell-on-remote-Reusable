@@ -4,61 +4,12 @@ on:
   workflow_call:
     inputs:
       dotnet-version:
-        description: "Version of .NET to use"
         required: true
-        type: string
-      vsTestVersion:
-        description: "Visual Studio Test version"
-        required: true
-        type: string
-      testAssembly:
-        description: "Test assembly pattern (e.g., `**/*Tests.dll`)"
-        required: true
-        type: string
-      testFilterCriteria:
-        description: "Test filter criteria"
-        required: false
-        type: string
-      runSettingsFile:
-        description: "Run settings file"
-        required: false
-        type: string
-      codeCoverageEnabled:
-        description: "Enable code coverage"
-        required: false
-        type: boolean
-      pathToCustomTestAdapters:
-        description: "Path to custom test adapters"
-        required: false
-        type: string
-      overrideTestRunParameters:
-        description: "Override test run parameters"
-        required: false
-        type: string
-      publishRunAttachments:
-        description: "Publish test run attachments"
-        required: false
-        type: boolean
-      runInParallel:
-        description: "Run tests in parallel"
-        required: false
-        type: boolean
-      testRunTitle:
-        description: "Test run title"
-        required: false
-        type: string
-      platform:
-        description: "Target platform (x64/x86)"
-        required: false
         type: string
       configuration:
-        description: "Build configuration (Debug/Release)"
         required: false
         type: string
-      otherConsoleOptions:
-        description: "Additional console options for dotnet test"
-        required: false
-        type: string
+        default: "Release"
 
 jobs:
   test:
@@ -72,18 +23,14 @@ jobs:
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
+      - name: Install Required .NET Workloads
+        run: dotnet workload install microsoft.net.sdk.test
+
       - name: Restore Dependencies
         run: dotnet restore
 
       - name: Build Project
         run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
 
-      - name: Run Tests
-        run: |
-          dotnet test `
-            --filter "${{ inputs.testFilterCriteria }}" `
-            --settings "${{ inputs.runSettingsFile }}" `
-            --logger trx `
-            --configuration ${{ inputs.configuration }} `
-            --collect:"XPlat Code Coverage" `
-            ${{ inputs.otherConsoleOptions }}
+      - name: Run Tests with TRX Logger
+        run: dotnet test --logger "trx;LogFileName=test-results.trx"
