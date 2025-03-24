@@ -70,7 +70,16 @@ jobs:
 
       - name: Run Tests with VSTest
         run: |
-          $testCommand = "`"$env:VSTEST_CONSOLE`" `"${{ inputs.testAssembly }}`"" 
+          # Resolve test assemblies using wildcard
+          $testAssemblies = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Recurse -Filter "${{ inputs.testAssembly }}" | ForEach-Object { "`"$_`"" }
+          if (-not $testAssemblies) {
+            Write-Host "No test assemblies found matching pattern '${{ inputs.testAssembly }}'"
+            exit 1
+          }
+
+          # Build the test command
+          $testCommand = "`"$env:VSTEST_CONSOLE`" $testAssemblies"
+          
           if ("${{ inputs.testFilterCriteria }}" -ne "") {
             $testCommand += " /TestCaseFilter:${{ inputs.testFilterCriteria }}"
           }
@@ -95,6 +104,7 @@ jobs:
           if ("${{ inputs.otherConsoleOptions }}" -ne "") {
             $testCommand += " ${{ inputs.otherConsoleOptions }}"
           }
-          Write-Host " Running: $testCommand"
+
+          Write-Host "Running: $testCommand"
           Invoke-Expression $testCommand
         shell: pwsh
