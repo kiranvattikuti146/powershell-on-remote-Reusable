@@ -1,4 +1,4 @@
-name: Reusable VS Test Workflow
+name: VSTest Reusable Workflow
 
 on:
   workflow_call:
@@ -6,69 +6,54 @@ on:
       dotnet-version:
         required: true
         type: string
-      vs-test-version:
-        required: false
-        type: string
-        default: "16.0"
       test-assembly:
         required: true
         type: string
       test-filter-criteria:
         required: false
         type: string
-        default: ""
-      run-settings-file:
-        required: false
+      configuration:
+        required: true
         type: string
-        default: ""
-      code-coverage-enabled:
-        required: false
-        type: boolean
-        default: false
-      run-in-parallel:
-        required: false
-        type: boolean
-        default: false
-      test-run-title:
-        required: false
-        type: string
-        default: "Automated Tests"
       platform:
         required: false
         type: string
-        default: "x64"
-      configuration:
+      run-settings-file:
         required: false
         type: string
-        default: "Release"
+      code-coverage-enabled:
+        required: false
+        type: boolean
+      test-run-title:
+        required: false
+        type: string
 
 jobs:
-  test:
+  run-tests:
     runs-on: windows-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
-      - name: Install Required .NET Workloads
-        run: |
-          dotnet workload install microsoft.net.sdk.test
-          dotnet tool install --global trx2junit
-
-      - name: Restore Dependencies
+      - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build Project
+      - name: Build solution
         run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
 
-      - name: Run Tests with TRX Logger
+      - name: Run tests
         run: |
-          dotnet test --configuration ${{ inputs.configuration }} `
-            --logger "trx;LogFileName=test-results.trx" `
-            --test-adapter-path:. `
+          dotnet test `
+            --configuration ${{ inputs.configuration }} `
+            --logger "trx" `
+            --results-directory TestResults `
+            --collect:"XPlat Code Coverage" `
             --filter "${{ inputs.test-filter-criteria }}" `
-            ${{ inputs.test-assembly }}
+            --settings "${{ inputs.run-settings-file }}"
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
