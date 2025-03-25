@@ -30,9 +30,6 @@ on:
       custom-test-adapters:
         required: false
         type: string
-      publish-run-attachments:
-        required: false
-        type: boolean
       run-in-parallel:
         required: false
         type: boolean
@@ -68,10 +65,3 @@ jobs:
                --blame `
                --parallel=${{ inputs.run-in-parallel }} `
                --diag:logfile.txt
-
-      - name: Publish Test Results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: TestResults
-          path: TestResults
