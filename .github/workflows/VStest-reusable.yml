@@ -27,6 +27,15 @@ on:
       test-run-title:
         required: false
         type: string
+      custom-test-adapters:
+        required: false
+        type: string
+      publish-run-attachments:
+        required: false
+        type: boolean
+      run-in-parallel:
+        required: false
+        type: boolean
 
 jobs:
   run-tests:
@@ -54,6 +63,15 @@ jobs:
             --results-directory TestResults `
             --collect:"XPlat Code Coverage" `
             --filter "${{ inputs.test-filter-criteria }}" `
-            --settings "${{ inputs.run-settings-file }}"
-        env:
-          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+            --settings "${{ inputs.run-settings-file }}" `
+            -- TestAdapterPath="${{ inputs.custom-test-adapters }}" `
+               --blame `
+               --parallel=${{ inputs.run-in-parallel }} `
+               --diag:logfile.txt
+
+      - name: Publish Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: TestResults
+          path: TestResults
