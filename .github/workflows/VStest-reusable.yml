@@ -27,9 +27,12 @@ on:
       test-run-title:
         required: false
         type: string
-      custom-test-adapters:  
+      custom-test-adapters:
         required: false
         type: string
+      run-in-parallel:
+        required: false
+        type: boolean
 
 jobs:
   run-tests:
@@ -58,5 +61,7 @@ jobs:
             --collect:"XPlat Code Coverage" `
             --filter "${{ inputs.test-filter-criteria }}" `
             --settings "${{ inputs.run-settings-file }}" `
-            --test-adapter-path "${{ inputs.custom-test-adapters }}"
-        
+            -- TestAdapterPath="${{ inputs.custom-test-adapters }}" `
+               --blame `
+               --parallel=${{ inputs.run-in-parallel }} `
+               --diag:logfile.txt
