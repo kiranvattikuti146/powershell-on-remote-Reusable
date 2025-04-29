@@ -33,6 +33,93 @@ on:
       run-in-parallel:
         required: false
         type: boolean
+      testPlan:
+        required: false
+        type: string
+      testSuite:
+        required: false
+        type: string
+      testConfiguration:
+        required: false
+        type: string
+      tcmTestRun:
+        required: false
+        type: string
+      runOnlyImpactedTests:
+        required: false
+        type: boolean
+      runAllTestsAfterXBuilds:
+        required: false
+        type: string
+      uiTests:
+        required: false
+        type: boolean
+      vstestLocationMethod:
+        required: false
+        type: string
+      vsTestVersion:
+        required: false
+        type: string
+      vstestLocation:
+        required: false
+        type: string
+      overrideTestrunParameters:
+        required: false
+        type: string
+      otherConsoleOptions:
+        required: false
+        type: string
+      diagnosticsEnabled:
+        required: false
+        type: boolean
+      collectDumpOn:
+        required: false
+        type: string
+      rerunFailedTests:
+        required: false
+        type: boolean
+      rerunType:
+        required: false
+        type: string
+      rerunFailedThreshold:
+        required: false
+        type: string
+      rerunFailedTestCasesMaxLimit:
+        required: false
+        type: string
+      rerunMaxAttempts:
+        required: false
+        type: string
+      distributionBatchType:
+        required: false
+        type: string
+      batchingBasedOnAgentsOption:
+        required: false
+        type: string
+      customBatchSizeValue:
+        required: false
+        type: string
+      batchingBasedOnExecutionTimeOption:
+        required: false
+        type: string
+      customRunTimePerBatchValue:
+        required: false
+        type: string
+      dontDistribute:
+        required: false
+        type: boolean
+      publishRunAttachments:
+        required: false
+        type: boolean
+      donotPublishTestResults:
+        required: false
+        type: boolean
+      failOnMinTestsNotRun:
+        required: false
+        type: boolean
+      minimumExpectedTests:
+        required: false
+        type: string
 
 jobs:
   run-tests:
