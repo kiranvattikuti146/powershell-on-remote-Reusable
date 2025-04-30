@@ -96,28 +96,28 @@ on:
       batchingBasedOnAgentsOption:
         required: false
         type: string
-      runOnlyImpactedTests0:
+      customBatchSizeValue:
         required: false
         type: string
-      runOnlyImpactedTests1:
+      batchingBasedOnExecutionTimeOption:
         required: false
         type: string
-      runOnlyImpactedTests2:
+      customRunTimePerBatchValue:
         required: false
         type: string
       dontDistribute:
         required: false
         type: boolean
-      runOnlyImpactedTests3:
+      publishRunAttachments:
         required: false
         type: boolean
-      runOnlyImpactedTests4:
+      donotPublishTestResults:
         required: false
         type: boolean
-      runOnlyImpactedTests5:
+      failOnMinTestsNotRun:
         required: false
         type: boolean
-      runOnlyImpactedTests6:
+      minimumExpectedTests:
         required: false
         type: string
 
@@ -146,37 +146,33 @@ jobs:
             --logger "trx" `
             --results-directory TestResults `
             --collect:"XPlat Code Coverage" `
+            ${{ if inputs.code-coverage-enabled }} --collect:"Code Coverage" `
             --filter "${{ inputs.test-filter-criteria }}" `
             --settings "${{ inputs.run-settings-file }}" `
-            -- TestAdapterPath="${{ inputs.custom-test-adapters }}" `
-            --blame `
-            --parallel=${{ inputs.run-in-parallel }} `
-            --diag:logfile.txt `
-            -- TestRunParameters.Parameter(name="TestPlan", value="${{ inputs.testPlan }}") `
-            -- TestRunParameters.Parameter(name="TestSuite", value="${{ inputs.testSuite }}") `
-            -- TestRunParameters.Parameter(name="TestConfiguration", value="${{ inputs.testConfiguration }}") `
-            -- TestRunParameters.Parameter(name="TcmTestRun", value="${{ inputs.tcmTestRun }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests", value="${{ inputs. runOnlyImpactedTests }}") `
-            -- TestRunParameters.Parameter(name="runAllTestsAfterXBuilds", value="${{ inputs. runAllTestsAfterXBuilds }}") `
-            -- TestRunParameters.Parameter(name="vstestLocationMethod", value="${{ inputs. vstestLocationMethod }}") `
-            -- TestRunParameters.Parameter(name="vsTestVersion", value="${{ inputs.vsTestVersion }}") `
-            -- TestRunParameters.Parameter(name="vstestLocation", value="${{ inputs.vstestLocation }}") `
-            -- TestRunParameters.Parameter(name="overrideTestrunParameters", value="${{ inputs. overrideTestrunParameters }}") `
-            -- TestRunParameters.Parameter(name="otherConsoleOptions", value="${{ inputs.otherConsoleOptions }}") `
-            -- TestRunParameters.Parameter(name="diagnosticsEnabled", value="${{ inputs.diagnosticsEnabled }}") `
-            -- TestRunParameters.Parameter(name="collectDumpOn", value="${{ inputs.collectDumpOn }}") `
-            -- TestRunParameters.Parameter(name="rerunFailedTests", value="${{ inputs.rerunFailedTests }}") `
-            -- TestRunParameters.Parameter(name="rerunType", value="${{ inputs.rerunType }}") `
-            -- TestRunParameters.Parameter(name="rerunFailedThreshold", value="${{ inputs. rerunFailedThreshold }}") `
-            -- TestRunParameters.Parameter(name="rerunFailedTestCasesMaxLimit", value="${{ inputs. rerunFailedTestCasesMaxLimit }}") `
-            -- TestRunParameters.Parameter(name="rerunMaxAttempts", value="${{ inputs.rerunMaxAttempts }}") `
-            -- TestRunParameters.Parameter(name="distributionBatchType", value="${{ inputs. distributionBatchType }}") `
-            -- TestRunParameters.Parameter(name="batchingBasedOnAgentsOption", value="${{ inputs. batchingBasedOnAgentsOption }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests0", value="${{ inputs. runOnlyImpactedTests0 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests1", value="${{ inputs. runOnlyImpactedTests1 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests2", value="${{ inputs. runOnlyImpactedTests2 }}") `
-            -- TestRunParameters.Parameter(name="dontDistribute", value="${{ inputs.dontDistribute }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests3", value="${{ inputs. runOnlyImpactedTests3 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests4", value="${{ inputs. runOnlyImpactedTests4 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests5", value="${{ inputs. runOnlyImpactedTests5 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests6", value="${{ inputs. runOnlyImpactedTests6 }}")
+            --TestAdapterPath="${{ inputs.custom-test-adapters }}" `
+            ${{ if inputs.run-in-parallel }} --parallel `
+            --testRunTitle "${{ inputs.test-run-title }}" `
+            ${{ if inputs.runOnlyImpactedTests }} --runOnlyImpactedTests `
+            ${{ if inputs.uiTests }} --uiTests `
+            ${{ if inputs.vstestLocationMethod }} --vstestLocationMethod="${{ inputs.vstestLocationMethod }}" `
+            ${{ if inputs.vsTestVersion }} --vsTestVersion="${{ inputs.vsTestVersion }}" `
+            ${{ if inputs.vstestLocation }} --vstestLocation="${{ inputs.vstestLocation }}" `
+            ${{ if inputs.overrideTestrunParameters }} --overrideTestrunParameters="${{ inputs.overrideTestrunParameters }}" `
+            ${{ if inputs.otherConsoleOptions }} --otherConsoleOptions="${{ inputs.otherConsoleOptions }}" `
+            ${{ if inputs.diagnosticsEnabled }} --diagnosticsEnabled `
+            ${{ if inputs.collectDumpOn }} --collectDumpOn="${{ inputs.collectDumpOn }}" `
+            ${{ if inputs.rerunFailedTests }} --rerunFailedTests `
+            ${{ if inputs.rerunType }} --rerunType="${{ inputs.rerunType }}" `
+            ${{ if inputs.rerunFailedThreshold }} --rerunFailedThreshold="${{ inputs.rerunFailedThreshold }}" `
+            ${{ if inputs.rerunFailedTestCasesMaxLimit }} --rerunFailedTestCasesMaxLimit="${{ inputs.rerunFailedTestCasesMaxLimit }}" `
+            ${{ if inputs.rerunMaxAttempts }} --rerunMaxAttempts="${{ inputs.rerunMaxAttempts }}" `
+            ${{ if inputs.distributionBatchType }} --distributionBatchType="${{ inputs.distributionBatchType }}" `
+            ${{ if inputs.batchingBasedOnAgentsOption }} --batchingBasedOnAgentsOption="${{ inputs.batchingBasedOnAgentsOption }}" `
+            ${{ if inputs.customBatchSizeValue }} --customBatchSizeValue="${{ inputs.customBatchSizeValue }}" `
+            ${{ if inputs.batchingBasedOnExecutionTimeOption }} --batchingBasedOnExecutionTimeOption="${{ inputs.batchingBasedOnExecutionTimeOption }}" `
+            ${{ if inputs.customRunTimePerBatchValue }} --customRunTimePerBatchValue="${{ inputs.customRunTimePerBatchValue }}" `
+            ${{ if inputs.dontDistribute }} --dontDistribute `
+            ${{ if inputs.publishRunAttachments }} --publishRunAttachments `
+            ${{ if inputs.donotPublishTestResults }} --donotPublishTestResults `
+            ${{ if inputs.failOnMinTestsNotRun }} --failOnMinTestsNotRun `
+            ${{ if inputs.minimumExpectedTests }} --minimumExpectedTests="${{ inputs.minimumExpectedTests }}"
