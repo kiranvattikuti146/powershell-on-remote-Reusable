@@ -5,106 +5,106 @@ on:
     inputs:
       dotnet-version:
         required: true
-        type: string
+        type:
       test-assembly:
         required: true
-        type: string
+        type:
       test-filter-criteria:
         required: false
-        type: string
+        type:
       configuration:
         required: true
-        type: string
+        type:
       platform:
         required: false
-        type: string
+        type:
       run-settings-file:
         required: false
-        type: string
+        type:
       code-coverage-enabled:
         required: false
         type: boolean
       test-run-title:
         required: false
-        type: string
+        type:
       custom-test-adapters:
         required: false
-        type: string
+        type:
       run-in-parallel:
         required: false
         type: boolean
       testPlan:
         required: false
-        type: string
+        type:
       testSuite:
         required: false
-        type: string
+        type:
       testConfiguration:
         required: false
-        type: string
+        type:
       tcmTestRun:
         required: false
-        type: string
+        type:
       runOnlyImpactedTests:
         required: false
         type: boolean
       runAllTestsAfterXBuilds:
         required: false
-        type: string
+        type:
       uiTests:
         required: false
         type: boolean
       vstestLocationMethod:
         required: false
-        type: string
+        type:
       vsTestVersion:
         required: false
-        type: string
+        type:
       vstestLocation:
         required: false
-        type: string
+        type:
       overrideTestrunParameters:
         required: false
-        type: string
+        type:
       otherConsoleOptions:
         required: false
-        type: string
+        type:
       diagnosticsEnabled:
         required: false
         type: boolean
       collectDumpOn:
         required: false
-        type: string
+        type:
       rerunFailedTests:
         required: false
         type: boolean
       rerunType:
         required: false
-        type: string
+        type:
       rerunFailedThreshold:
         required: false
-        type: string
+        type:
       rerunFailedTestCasesMaxLimit:
         required: false
-        type: string
+        type:
       rerunMaxAttempts:
         required: false
-        type: string
+        type:
       distributionBatchType:
         required: false
-        type: string
+        type:
       batchingBasedOnAgentsOption:
         required: false
-        type: string
+        type:
       customBatchSizeValue:
         required: false
-        type: string
+        type:
       batchingBasedOnExecutionTimeOption:
         required: false
-        type: string
+        type:
       customRunTimePerBatchValue:
         required: false
-        type: string
+        type:
       dontDistribute:
         required: false
         type: boolean
@@ -119,7 +119,7 @@ on:
         type: boolean
       minimumExpectedTests:
         required: false
-        type: string
+        type:
 
 jobs:
   run-tests:
