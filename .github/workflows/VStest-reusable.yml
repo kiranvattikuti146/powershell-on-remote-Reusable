@@ -5,106 +5,106 @@ on:
     inputs:
       dotnet-version:
         required: true
-        type:
+        type: string
       test-assembly:
         required: true
-        type:
+        type: string
       test-filter-criteria:
         required: false
-        type:
+        type: string
       configuration:
         required: true
-        type:
+        type: string
       platform:
         required: false
-        type:
+        type: string
       run-settings-file:
         required: false
-        type:
+        type: string
       code-coverage-enabled:
         required: false
         type: boolean
       test-run-title:
         required: false
-        type:
+        type: string
       custom-test-adapters:
         required: false
-        type:
+        type: string
       run-in-parallel:
         required: false
         type: boolean
       testPlan:
         required: false
-        type:
+        type: string
       testSuite:
         required: false
-        type:
+        type: string
       testConfiguration:
         required: false
-        type:
+        type: string
       tcmTestRun:
         required: false
-        type:
+        type: string
       runOnlyImpactedTests:
         required: false
         type: boolean
       runAllTestsAfterXBuilds:
         required: false
-        type:
+        type: string
       uiTests:
         required: false
         type: boolean
       vstestLocationMethod:
         required: false
-        type:
+        type: string
       vsTestVersion:
         required: false
-        type:
+        type: string
       vstestLocation:
         required: false
-        type:
+        type: string
       overrideTestrunParameters:
         required: false
-        type:
+        type: string
       otherConsoleOptions:
         required: false
-        type:
+        type: string
       diagnosticsEnabled:
         required: false
         type: boolean
       collectDumpOn:
         required: false
-        type:
+        type: string
       rerunFailedTests:
         required: false
         type: boolean
       rerunType:
         required: false
-        type:
+        type: string
       rerunFailedThreshold:
         required: false
-        type:
+        type: string
       rerunFailedTestCasesMaxLimit:
         required: false
-        type:
+        type: string
       rerunMaxAttempts:
         required: false
-        type:
+        type: string
       distributionBatchType:
         required: false
-        type:
+        type: string
       batchingBasedOnAgentsOption:
         required: false
-        type:
+        type: string
       customBatchSizeValue:
         required: false
-        type:
+        type: string
       batchingBasedOnExecutionTimeOption:
         required: false
-        type:
+        type: string
       customRunTimePerBatchValue:
         required: false
-        type:
+        type: string
       dontDistribute:
         required: false
         type: boolean
@@ -119,7 +119,7 @@ on:
         type: boolean
       minimumExpectedTests:
         required: false
-        type:
+        type: string
 
 jobs:
   run-tests:
@@ -141,38 +141,37 @@ jobs:
 
       - name: Run tests
         run: |
-          dotnet test `
-            --configuration ${{ inputs.configuration }} `
-            --logger "trx" `
-            --results-directory TestResults `
-            --collect:"XPlat Code Coverage" `
-            ${{ if inputs.code-coverage-enabled }}: --collect:"Code Coverage" `
-            --filter "${{ inputs.test-filter-criteria }}" `
-            --settings "${{ inputs.run-settings-file }}" `
-            --TestAdapterPath="${{ inputs.custom-test-adapters }}" `
-            ${{ if inputs.run-in-parallel }}: --parallel `
-            --testRunTitle "${{ inputs.test-run-title }}" `
-            ${{ if inputs.runOnlyImpactedTests }}: --runOnlyImpactedTests `
-            ${{ if inputs.uiTests }}: --uiTests `
-            ${{ if inputs.vstestLocationMethod }}: --vstestLocationMethod="${{ inputs.vstestLocationMethod }}" `
-            ${{ if inputs.vsTestVersion }}: --vsTestVersion="${{ inputs.vsTestVersion }}" `
-            ${{ if inputs.vstestLocation }}: --vstestLocation="${{ inputs.vstestLocation }}" `
-            ${{ if inputs.overrideTestrunParameters }}: --overrideTestrunParameters="${{ inputs.overrideTestrunParameters }}" `
-            ${{ if inputs.otherConsoleOptions }}: --otherConsoleOptions="${{ inputs.otherConsoleOptions }}" `
-            ${{ if inputs.diagnosticsEnabled }}: --diagnosticsEnabled `
-            ${{ if inputs.collectDumpOn }}: --collectDumpOn="${{ inputs.collectDumpOn }}" `
-            ${{ if inputs.rerunFailedTests }}: --rerunFailedTests `
-            ${{ if inputs.rerunType }}: --rerunType="${{ inputs.rerunType }}" `
-            ${{ if inputs.rerunFailedThreshold }}: --rerunFailedThreshold="${{ inputs.rerunFailedThreshold }}" `
-            ${{ if inputs.rerunFailedTestCasesMaxLimit }}: --rerunFailedTestCasesMaxLimit="${{ inputs.rerunFailedTestCasesMaxLimit }}" `
-            ${{ if inputs.rerunMaxAttempts }}: --rerunMaxAttempts="${{ inputs.rerunMaxAttempts }}" `
-            ${{ if inputs.distributionBatchType }}: --distributionBatchType="${{ inputs.distributionBatchType }}" `
-            ${{ if inputs.batchingBasedOnAgentsOption }}: --batchingBasedOnAgentsOption="${{ inputs.batchingBasedOnAgentsOption }}" `
-            ${{ if inputs.customBatchSizeValue }}: --customBatchSizeValue="${{ inputs.customBatchSizeValue }}" `
-            ${{ if inputs.batchingBasedOnExecutionTimeOption }}: --batchingBasedOnExecutionTimeOption="${{ inputs.batchingBasedOnExecutionTimeOption }}" `
-            ${{ if inputs.customRunTimePerBatchValue }}: --customRunTimePerBatchValue="${{ inputs.customRunTimePerBatchValue }}" `
-            ${{ if inputs.dontDistribute }}: --dontDistribute `
-            ${{ if inputs.publishRunAttachments }}: --publishRunAttachments `
-            ${{ if inputs.donotPublishTestResults }}: --donotPublishTestResults `
-            ${{ if inputs.failOnMinTestsNotRun }}: --failOnMinTestsNotRun `
-            ${{ if inputs.minimumExpectedTests }}: --minimumExpectedTests="${{ inputs.minimumExpectedTests }}"
+          dotnet test \
+            --configuration "${{ inputs.configuration }}" \
+            --logger "trx" \
+            --results-directory TestResults \
+            ${{ inputs.code-coverage-enabled && '--collect:"XPlat Code Coverage"' || '' }} \
+            ${{ inputs.test-filter-criteria && format('--filter "{0}"', inputs.test-filter-criteria) || '' }} \
+            ${{ inputs.run-settings-file && format('--settings "{0}"', inputs.run-settings-file) || '' }} \
+            ${{ inputs.custom-test-adapters && format('--TestAdapterPath "{0}"', inputs.custom-test-adapters) || '' }} \
+            ${{ inputs.run-in-parallel && '--parallel' || '' }} \
+            ${{ inputs.test-run-title && format('--testRunTitle "{0}"', inputs.test-run-title) || '' }} \
+            ${{ inputs.runOnlyImpactedTests && '--runOnlyImpactedTests' || '' }} \
+            ${{ inputs.uiTests && '--uiTests' || '' }} \
+            ${{ inputs.vstestLocationMethod && format('--vstestLocationMethod "{0}"', inputs.vstestLocationMethod) || '' }} \
+            ${{ inputs.vsTestVersion && format('--vsTestVersion "{0}"', inputs.vsTestVersion) || '' }} \
+            ${{ inputs.vstestLocation && format('--vstestLocation "{0}"', inputs.vstestLocation) || '' }} \
+            ${{ inputs.overrideTestrunParameters && format('--overrideTestrunParameters "{0}"', inputs.overrideTestrunParameters) || '' }} \
+            ${{ inputs.otherConsoleOptions || '' }} \
+            ${{ inputs.diagnosticsEnabled && '--diagnosticsEnabled' || '' }} \
+            ${{ inputs.collectDumpOn && format('--collectDumpOn "{0}"', inputs.collectDumpOn) || '' }} \
+            ${{ inputs.rerunFailedTests && '--rerunFailedTests' || '' }} \
+            ${{ inputs.rerunType && format('--rerunType "{0}"', inputs.rerunType) || '' }} \
+            ${{ inputs.rerunFailedThreshold && format('--rerunFailedThreshold "{0}"', inputs.rerunFailedThreshold) || '' }} \
+            ${{ inputs.rerunFailedTestCasesMaxLimit && format('--rerunFailedTestCasesMaxLimit "{0}"', inputs.rerunFailedTestCasesMaxLimit) || '' }} \
+            ${{ inputs.rerunMaxAttempts && format('--rerunMaxAttempts "{0}"', inputs.rerunMaxAttempts) || '' }} \
+            ${{ inputs.distributionBatchType && format('--distributionBatchType "{0}"', inputs.distributionBatchType) || '' }} \
+            ${{ inputs.batchingBasedOnAgentsOption && format('--batchingBasedOnAgentsOption "{0}"', inputs.batchingBasedOnAgentsOption) || '' }} \
+            ${{ inputs.customBatchSizeValue && format('--customBatchSizeValue "{0}"', inputs.customBatchSizeValue) || '' }} \
+            ${{ inputs.batchingBasedOnExecutionTimeOption && format('--batchingBasedOnExecutionTimeOption "{0}"', inputs.batchingBasedOnExecutionTimeOption) || '' }} \
+            ${{ inputs.customRunTimePerBatchValue && format('--customRunTimePerBatchValue "{0}"', inputs.customRunTimePerBatchValue) || '' }} \
+            ${{ inputs.dontDistribute && '--dontDistribute' || '' }} \
+            ${{ inputs.publishRunAttachments && '--publishRunAttachments' || '' }} \
+            ${{ inputs.donotPublishTestResults && '--donotPublishTestResults' || '' }} \
+            ${{ inputs.failOnMinTestsNotRun && '--failOnMinTestsNotRun' || '' }} \
+            ${{ inputs.minimumExpectedTests && format('--minimumExpectedTests "{0}"', inputs.minimumExpectedTests) || '' }}
