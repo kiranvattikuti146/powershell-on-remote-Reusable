@@ -1,4 +1,4 @@
-name: VSTest Reusable Workflow
+name: VStest Reusable Workflow
 
 on:
   workflow_call:
@@ -10,173 +10,167 @@ on:
         required: true
         type: string
       test-filter-criteria:
-        required: false
+        required: true
         type: string
+      run-settings-file:
+        required: true
+        type: string
+      code-coverage-enabled:
+        required: true
+        type: boolean
       configuration:
         required: true
         type: string
       platform:
-        required: false
+        required: true
         type: string
-      run-settings-file:
-        required: false
-        type: string
-      code-coverage-enabled:
-        required: false
-        type: boolean
       test-run-title:
-        required: false
+        required: true
         type: string
       custom-test-adapters:
-        required: false
+        required: true
         type: string
       run-in-parallel:
-        required: false
+        required: true
         type: boolean
       testPlan:
-        required: false
+        required: true
         type: string
       testSuite:
-        required: false
+        required: true
         type: string
       testConfiguration:
-        required: false
+        required: true
         type: string
       tcmTestRun:
-        required: false
+        required: true
         type: string
-      runOnlyImpactedTests:
-        required: false
-        type: boolean
-      runAllTestsAfterXBuilds:
-        required: false
+      sensitive-info-1:
+        required: true
         type: string
-      uiTests:
-        required: false
-        type: boolean
-      vstestLocationMethod:
-        required: false
+      sensitive-info-11:
+        required: true
+        type: string
+      sensitive-info-12:
+        required: true
         type: string
       vsTestVersion:
-        required: false
+        required: true
         type: string
       vstestLocation:
-        required: false
+        required: true
         type: string
-      overrideTestrunParameters:
-        required: false
+      sensitive-info-13:
+        required: true
         type: string
       otherConsoleOptions:
-        required: false
+        required: true
         type: string
       diagnosticsEnabled:
-        required: false
+        required: true
         type: boolean
       collectDumpOn:
-        required: false
+        required: true
         type: string
       rerunFailedTests:
-        required: false
+        required: true
         type: boolean
       rerunType:
-        required: false
+        required: true
         type: string
-      rerunFailedThreshold:
-        required: false
+      sensitive-info-15:
+        required: true
         type: string
-      rerunFailedTestCasesMaxLimit:
-        required: false
+      sensitive-info-16:
+        required: true
         type: string
       rerunMaxAttempts:
-        required: false
+        required: true
         type: string
-      distributionBatchType:
-        required: false
+      sensitive-info-17:
+        required: true
         type: string
-      batchingBasedOnAgentsOption:
-        required: false
+      sensitive-info-18:
+        required: true
         type: string
-      runOnlyImpactedTests0:
-        required: false
+      sensitive-info-1-0:
+        required: true
         type: string
-      runOnlyImpactedTests1:
-        required: false
+      sensitive-info-1-1:
+        required: true
         type: string
-      runOnlyImpactedTests2:
-        required: false
+      sensitive-info-1-2:
+        required: true
         type: string
       dontDistribute:
-        required: false
+        required: true
         type: boolean
-      runOnlyImpactedTests3:
-        required: false
+      sensitive-info-1-3:
+        required: true
         type: boolean
-      runOnlyImpactedTests4:
-        required: false
+      sensitive-info-1-4:
+        required: true
         type: boolean
-      runOnlyImpactedTests5:
-        required: false
+      sensitive-info-1-5:
+        required: true
         type: boolean
-      runOnlyImpactedTests6:
-        required: false
+      sensitive-info-1-6:
+        required: true
         type: string
 
 jobs:
   run-tests:
     runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
-      - name: Restore dependencies
+      - name: Restore Dependencies
         run: dotnet restore
 
-      - name: Build solution
-        run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
-
-      - name: Run tests
+      - name: Run Tests
         run: |
-          dotnet test `
-            --configuration ${{ inputs.configuration }} `
-            --logger "trx" `
-            --results-directory TestResults `
-            --collect:"XPlat Code Coverage" `
-            --filter "${{ inputs.test-filter-criteria }}" `
-            --settings "${{ inputs.run-settings-file }}" `
-            -- TestAdapterPath="${{ inputs.custom-test-adapters }}" `
-            --blame `
-            --parallel=${{ inputs.run-in-parallel }} `
-            --diag:logfile.txt `
-            -- TestRunParameters.Parameter(name="TestPlan", value="${{ inputs.testPlan }}") `
-            -- TestRunParameters.Parameter(name="TestSuite", value="${{ inputs.testSuite }}") `
-            -- TestRunParameters.Parameter(name="TestConfiguration", value="${{ inputs.testConfiguration }}") `
-            -- TestRunParameters.Parameter(name="TcmTestRun", value="${{ inputs.tcmTestRun }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests", value="${{ inputs. runOnlyImpactedTests }}") `
-            -- TestRunParameters.Parameter(name="runAllTestsAfterXBuilds", value="${{ inputs. runAllTestsAfterXBuilds }}") `
-            -- TestRunParameters.Parameter(name="vstestLocationMethod", value="${{ inputs. vstestLocationMethod }}") `
-            -- TestRunParameters.Parameter(name="vsTestVersion", value="${{ inputs.vsTestVersion }}") `
-            -- TestRunParameters.Parameter(name="vstestLocation", value="${{ inputs.vstestLocation }}") `
-            -- TestRunParameters.Parameter(name="overrideTestrunParameters", value="${{ inputs. overrideTestrunParameters }}") `
-            -- TestRunParameters.Parameter(name="otherConsoleOptions", value="${{ inputs.otherConsoleOptions }}") `
-            -- TestRunParameters.Parameter(name="diagnosticsEnabled", value="${{ inputs.diagnosticsEnabled }}") `
-            -- TestRunParameters.Parameter(name="collectDumpOn", value="${{ inputs.collectDumpOn }}") `
-            -- TestRunParameters.Parameter(name="rerunFailedTests", value="${{ inputs.rerunFailedTests }}") `
-            -- TestRunParameters.Parameter(name="rerunType", value="${{ inputs.rerunType }}") `
-            -- TestRunParameters.Parameter(name="rerunFailedThreshold", value="${{ inputs. rerunFailedThreshold }}") `
-            -- TestRunParameters.Parameter(name="rerunFailedTestCasesMaxLimit", value="${{ inputs. rerunFailedTestCasesMaxLimit }}") `
-            -- TestRunParameters.Parameter(name="rerunMaxAttempts", value="${{ inputs.rerunMaxAttempts }}") `
-            -- TestRunParameters.Parameter(name="distributionBatchType", value="${{ inputs. distributionBatchType }}") `
-            -- TestRunParameters.Parameter(name="batchingBasedOnAgentsOption", value="${{ inputs. batchingBasedOnAgentsOption }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests0", value="${{ inputs. runOnlyImpactedTests0 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests1", value="${{ inputs. runOnlyImpactedTests1 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests2", value="${{ inputs. runOnlyImpactedTests2 }}") `
-            -- TestRunParameters.Parameter(name="dontDistribute", value="${{ inputs.dontDistribute }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests3", value="${{ inputs. runOnlyImpactedTests3 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests4", value="${{ inputs. runOnlyImpactedTests4 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests5", value="${{ inputs. runOnlyImpactedTests5 }}") `
-            -- TestRunParameters.Parameter(name="runOnlyImpactedTests6", value="${{ inputs. runOnlyImpactedTests6 }}")
+          dotnet test ^
+            --configuration ${{ inputs.configuration }} ^
+            --logger "trx" ^
+            --results-directory TestResults ^
+            --collect:"XPlat Code Coverage" ^
+            --filter "${{ inputs.test-filter-criteria }}" ^
+            --settings "${{ inputs.run-settings-file }}" ^
+            -- TestAdapterPath="${{ inputs.custom-test-adapters }}" ^
+            --blame ^
+            --parallel=${{ inputs.run-in-parallel }} ^
+            --diag:logfile.txt ^
+            -- TestRunParameters.Parameter(name="TestPlan", value="${{ inputs.testPlan }}") ^
+            -- TestRunParameters.Parameter(name="TestSuite", value="${{ inputs.testSuite }}") ^
+            -- TestRunParameters.Parameter(name="TestConfiguration", value="${{ inputs.testConfiguration }}") ^
+            -- TestRunParameters.Parameter(name="TcmTestRun", value="${{ inputs.tcmTestRun }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo1", value="${{ inputs.sensitive-info-1 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo11", value="${{ inputs.sensitive-info-11 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo12", value="${{ inputs.sensitive-info-12 }}") ^
+            -- TestRunParameters.Parameter(name="vsTestVersion", value="${{ inputs.vsTestVersion }}") ^
+            -- TestRunParameters.Parameter(name="vstestLocation", value="${{ inputs.vstestLocation }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo13", value="${{ inputs.sensitive-info-13 }}") ^
+            -- TestRunParameters.Parameter(name="otherConsoleOptions", value="${{ inputs.otherConsoleOptions }}") ^
+            -- TestRunParameters.Parameter(name="diagnosticsEnabled", value="${{ inputs.diagnosticsEnabled }}") ^
+            -- TestRunParameters.Parameter(name="collectDumpOn", value="${{ inputs.collectDumpOn }}") ^
+            -- TestRunParameters.Parameter(name="rerunFailedTests", value="${{ inputs.rerunFailedTests }}") ^
+            -- TestRunParameters.Parameter(name="rerunType", value="${{ inputs.rerunType }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo15", value="${{ inputs.sensitive-info-15 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo16", value="${{ inputs.sensitive-info-16 }}") ^
+            -- TestRunParameters.Parameter(name="rerunMaxAttempts", value="${{ inputs.rerunMaxAttempts }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo17", value="${{ inputs.sensitive-info-17 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo18", value="${{ inputs.sensitive-info-18 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo1-0", value="${{ inputs.sensitive-info-1-0 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo1-1", value="${{ inputs.sensitive-info-1-1 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo1-2", value="${{ inputs.sensitive-info-1-2 }}") ^
+            -- TestRunParameters.Parameter(name="dontDistribute", value="${{ inputs.dontDistribute }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo1-3", value="${{ inputs.sensitive-info-1-3 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo1-4", value="${{ inputs.sensitive-info-1-4 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo1-5", value="${{ inputs.sensitive-info-1-5 }}") ^
+            -- TestRunParameters.Parameter(name="SensitiveInfo1-6", value="${{ inputs.sensitive-info-1-6 }}")
