@@ -1,177 +1,178 @@
-name: VSTest Reusable Workflow
-
+name: 'VSTest reusable workflow'
 on:
   workflow_call:
     inputs:
-      dotnet-version:
-        required: true
-        type: string
-      test-assembly:
-        required: true
-        type: string
-      test-filter-criteria:
-        required: false
-        type: string
       configuration:
         required: true
-        type: string
-      platform:
-        required: false
-        type: string
-      run-settings-file:
-        required: false
         type: string
       code-coverage-enabled:
         required: false
         type: boolean
-      test-run-title:
+        default: false
+      test-filter-criteria:
         required: false
         type: string
+        default: ''
+      run-settings-file:
+        required: false
+        type: string
+        default: ''
       custom-test-adapters:
         required: false
         type: string
+        default: ''
       run-in-parallel:
         required: false
         type: boolean
-      testPlan:
+        default: false
+      test-run-title:
         required: false
         type: string
-      testSuite:
-        required: false
-        type: string
-      testConfiguration:
-        required: false
-        type: string
-      tcmTestRun:
-        required: false
-        type: string
+        default: ''
       runOnlyImpactedTests:
         required: false
         type: boolean
-      runAllTestsAfterXBuilds:
-        required: false
-        type: string
+        default: false
       uiTests:
         required: false
         type: boolean
+        default: false
       vstestLocationMethod:
         required: false
         type: string
+        default: ''
       vsTestVersion:
         required: false
         type: string
+        default: ''
       vstestLocation:
         required: false
         type: string
+        default: ''
       overrideTestrunParameters:
         required: false
         type: string
+        default: ''
       otherConsoleOptions:
         required: false
         type: string
+        default: ''
       diagnosticsEnabled:
         required: false
         type: boolean
+        default: false
       collectDumpOn:
         required: false
         type: string
+        default: ''
       rerunFailedTests:
         required: false
         type: boolean
+        default: false
       rerunType:
         required: false
         type: string
+        default: ''
       rerunFailedThreshold:
         required: false
         type: string
+        default: ''
       rerunFailedTestCasesMaxLimit:
         required: false
         type: string
+        default: ''
       rerunMaxAttempts:
         required: false
         type: string
+        default: ''
       distributionBatchType:
         required: false
         type: string
+        default: ''
       batchingBasedOnAgentsOption:
         required: false
         type: string
+        default: ''
       customBatchSizeValue:
         required: false
         type: string
+        default: ''
       batchingBasedOnExecutionTimeOption:
         required: false
         type: string
+        default: ''
       customRunTimePerBatchValue:
         required: false
         type: string
+        default: ''
       dontDistribute:
         required: false
         type: boolean
+        default: false
       publishRunAttachments:
         required: false
         type: boolean
+        default: false
       donotPublishTestResults:
         required: false
         type: boolean
+        default: false
       failOnMinTestsNotRun:
         required: false
         type: boolean
+        default: false
       minimumExpectedTests:
         required: false
         type: string
+        default: ''
 
 jobs:
   run-tests:
     runs-on: windows-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ inputs.dotnet-version }}
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
+          dotnet-version: '8.x'
 
       - name: Run tests
+        shell: pwsh
         run: |
-          dotnet test \
-            --configuration "${{ inputs.configuration }}" \
-            --logger "trx" \
-            --results-directory TestResults \
-            ${{ inputs.code-coverage-enabled && '--collect:"XPlat Code Coverage"' || '' }} \
-            ${{ inputs.test-filter-criteria && format('--filter "{0}"', inputs.test-filter-criteria) || '' }} \
-            ${{ inputs.run-settings-file && format('--settings "{0}"', inputs.run-settings-file) || '' }} \
-            ${{ inputs.custom-test-adapters && format('--TestAdapterPath "{0}"', inputs.custom-test-adapters) || '' }} \
-            ${{ inputs.run-in-parallel && '--parallel' || '' }} \
-            ${{ inputs.test-run-title && format('--testRunTitle "{0}"', inputs.test-run-title) || '' }} \
-            ${{ inputs.runOnlyImpactedTests && '--runOnlyImpactedTests' || '' }} \
-            ${{ inputs.uiTests && '--uiTests' || '' }} \
-            ${{ inputs.vstestLocationMethod && format('--vstestLocationMethod "{0}"', inputs.vstestLocationMethod) || '' }} \
-            ${{ inputs.vsTestVersion && format('--vsTestVersion "{0}"', inputs.vsTestVersion) || '' }} \
-            ${{ inputs.vstestLocation && format('--vstestLocation "{0}"', inputs.vstestLocation) || '' }} \
-            ${{ inputs.overrideTestrunParameters && format('--overrideTestrunParameters "{0}"', inputs.overrideTestrunParameters) || '' }} \
-            ${{ inputs.otherConsoleOptions || '' }} \
-            ${{ inputs.diagnosticsEnabled && '--diagnosticsEnabled' || '' }} \
-            ${{ inputs.collectDumpOn && format('--collectDumpOn "{0}"', inputs.collectDumpOn) || '' }} \
-            ${{ inputs.rerunFailedTests && '--rerunFailedTests' || '' }} \
-            ${{ inputs.rerunType && format('--rerunType "{0}"', inputs.rerunType) || '' }} \
-            ${{ inputs.rerunFailedThreshold && format('--rerunFailedThreshold "{0}"', inputs.rerunFailedThreshold) || '' }} \
-            ${{ inputs.rerunFailedTestCasesMaxLimit && format('--rerunFailedTestCasesMaxLimit "{0}"', inputs.rerunFailedTestCasesMaxLimit) || '' }} \
-            ${{ inputs.rerunMaxAttempts && format('--rerunMaxAttempts "{0}"', inputs.rerunMaxAttempts) || '' }} \
-            ${{ inputs.distributionBatchType && format('--distributionBatchType "{0}"', inputs.distributionBatchType) || '' }} \
-            ${{ inputs.batchingBasedOnAgentsOption && format('--batchingBasedOnAgentsOption "{0}"', inputs.batchingBasedOnAgentsOption) || '' }} \
-            ${{ inputs.customBatchSizeValue && format('--customBatchSizeValue "{0}"', inputs.customBatchSizeValue) || '' }} \
-            ${{ inputs.batchingBasedOnExecutionTimeOption && format('--batchingBasedOnExecutionTimeOption "{0}"', inputs.batchingBasedOnExecutionTimeOption) || '' }} \
-            ${{ inputs.customRunTimePerBatchValue && format('--customRunTimePerBatchValue "{0}"', inputs.customRunTimePerBatchValue) || '' }} \
-            ${{ inputs.dontDistribute && '--dontDistribute' || '' }} \
-            ${{ inputs.publishRunAttachments && '--publishRunAttachments' || '' }} \
-            ${{ inputs.donotPublishTestResults && '--donotPublishTestResults' || '' }} \
-            ${{ inputs.failOnMinTestsNotRun && '--failOnMinTestsNotRun' || '' }} \
-            ${{ inputs.minimumExpectedTests && format('--minimumExpectedTests "{0}"', inputs.minimumExpectedTests) || '' }}
+          $args = @("--configuration", "${{ inputs.configuration }}", "--logger", "trx", "--results-directory", "TestResults")
+
+          if (${{ inputs.code-coverage-enabled }}) { $args += '--collect:"XPlat Code Coverage"' }
+          if ("${{ inputs.test-filter-criteria }}") { $args += "--filter=${{ inputs.test-filter-criteria }}" }
+          if ("${{ inputs.run-settings-file }}") { $args += "--settings=${{ inputs.run-settings-file }}" }
+          if ("${{ inputs.custom-test-adapters }}") { $args += "--TestAdapterPath=${{ inputs.custom-test-adapters }}" }
+          if (${{ inputs.run-in-parallel }}) { $args += "--parallel" }
+          if ("${{ inputs.test-run-title }}") { $args += "--testRunTitle=${{ inputs.test-run-title }}" }
+          if (${{ inputs.runOnlyImpactedTests }}) { $args += "--runOnlyImpactedTests" }
+          if (${{ inputs.uiTests }}) { $args += "--uiTests" }
+          if ("${{ inputs.vstestLocationMethod }}") { $args += "--vstestLocationMethod=${{ inputs.vstestLocationMethod }}" }
+          if ("${{ inputs.vsTestVersion }}") { $args += "--vsTestVersion=${{ inputs.vsTestVersion }}" }
+          if ("${{ inputs.vstestLocation }}") { $args += "--vstestLocation=${{ inputs.vstestLocation }}" }
+          if ("${{ inputs.overrideTestrunParameters }}") { $args += "--overrideTestrunParameters=${{ inputs.overrideTestrunParameters }}" }
+          if ("${{ inputs.otherConsoleOptions }}") { $args += "${{ inputs.otherConsoleOptions }}" }
+          if (${{ inputs.diagnosticsEnabled }}) { $args += "--diagnosticsEnabled" }
+          if ("${{ inputs.collectDumpOn }}") { $args += "--collectDumpOn=${{ inputs.collectDumpOn }}" }
+          if (${{ inputs.rerunFailedTests }}) { $args += "--rerunFailedTests" }
+          if ("${{ inputs.rerunType }}") { $args += "--rerunType=${{ inputs.rerunType }}" }
+          if ("${{ inputs.rerunFailedThreshold }}") { $args += "--rerunFailedThreshold=${{ inputs.rerunFailedThreshold }}" }
+          if ("${{ inputs.rerunFailedTestCasesMaxLimit }}") { $args += "--rerunFailedTestCasesMaxLimit=${{ inputs.rerunFailedTestCasesMaxLimit }}" }
+          if ("${{ inputs.rerunMaxAttempts }}") { $args += "--rerunMaxAttempts=${{ inputs.rerunMaxAttempts }}" }
+          if ("${{ inputs.distributionBatchType }}") { $args += "--distributionBatchType=${{ inputs.distributionBatchType }}" }
+          if ("${{ inputs.batchingBasedOnAgentsOption }}") { $args += "--batchingBasedOnAgentsOption=${{ inputs.batchingBasedOnAgentsOption }}" }
+          if ("${{ inputs.customBatchSizeValue }}") { $args += "--customBatchSizeValue=${{ inputs.customBatchSizeValue }}" }
+          if ("${{ inputs.batchingBasedOnExecutionTimeOption }}") { $args += "--batchingBasedOnExecutionTimeOption=${{ inputs.batchingBasedOnExecutionTimeOption }}" }
+          if ("${{ inputs.customRunTimePerBatchValue }}") { $args += "--customRunTimePerBatchValue=${{ inputs.customRunTimePerBatchValue }}" }
+          if (${{ inputs.dontDistribute }}) { $args += "--dontDistribute" }
+          if (${{ inputs.publishRunAttachments }}) { $args += "--publishRunAttachments" }
+          if (${{ inputs.donotPublishTestResults }}) { $args += "--donotPublishTestResults" }
+          if (${{ inputs.failOnMinTestsNotRun }}) { $args += "--failOnMinTestsNotRun" }
+          if ("${{ inputs.minimumExpectedTests }}") { $args += "--minimumExpectedTests=${{ inputs.minimumExpectedTests }}" }
+
+          Write-Host "Running: dotnet test $($args -join ' ')"
+          dotnet test @args
