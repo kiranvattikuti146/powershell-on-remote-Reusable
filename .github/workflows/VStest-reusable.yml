@@ -1,3 +1,5 @@
+REUSABLE :
+
 name: VSTest Reusable Workflow
 
 on:
@@ -16,6 +18,9 @@ on:
         required: true
         type: string
       platform:
+        required: false
+        type: string
+      run-settings-file:
         required: false
         type: string
       code-coverage-enabled:
@@ -42,16 +47,16 @@ on:
       tcmTestRun:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_1:
+      runOnlyImpactedTests:
         required: false
         type: boolean
-      Sensitive_Alphanumeric_Info_2:
+      runAllTestsAfterXBuilds:
         required: false
         type: string
       uiTests:
         required: false
         type: boolean
-      Sensitive_Alphanumeric_Info_3:
+      vstestLocationMethod:
         required: false
         type: string
       vsTestVersion:
@@ -60,7 +65,7 @@ on:
       vstestLocation:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_4:
+      overrideTestrunParameters:
         required: false
         type: string
       otherConsoleOptions:
@@ -78,43 +83,43 @@ on:
       rerunType:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_5:
+      rerunFailedThreshold:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_6:
+      rerunFailedTestCasesMaxLimit:
         required: false
         type: string
       rerunMaxAttempts:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_7:
+      distributionBatchType:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_8:
+      batchingBasedOnAgentsOption:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_9:
+      customBatchSizeValue:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_10:
+      batchingBasedOnExecutionTimeOption:
         required: false
         type: string
-      Sensitive_Alphanumeric_Info_11:
+      customRunTimePerBatchValue:
         required: false
         type: string
       dontDistribute:
         required: false
         type: boolean
-      Sensitive_Alphanumeric_Info_12:
+      publishRunAttachments:
         required: false
         type: boolean
-      Sensitive_Alphanumeric_Info_13:
+      donotPublishTestResults:
         required: false
         type: boolean
-      Sensitive_Alphanumeric_Info_14:
+      failOnMinTestsNotRun:
         required: false
         type: boolean
-      Sensitive_Alphanumeric_Info_15:
+      minimumExpectedTests:
         required: false
         type: string
 
@@ -142,32 +147,33 @@ jobs:
             --configuration "${{ inputs.configuration }}" `
             --logger "trx" `
             --results-directory "TestResults" `
-            ${{ inputs.code-coverage-enabled && '--collect:"XPlat Code Coverage"' '' }} `
-            ${{ inputs.test-filter-criteria && format('--filter "{0}"', inputs.test-filter-criteria) '' }} `
-            ${{ inputs.custom-test-adapters && format('--TestAdapterPath "{0}"', inputs.custom-test-adapters) '' }} `
-            ${{ inputs.run-in-parallel && '--parallel' '' }} `
-            ${{ inputs.test-run-title && format('--testRunTitle "{0}"', inputs.test-run-title) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_1 && '-- Sensitive_Alphanumeric_Info_1' '' }} `
-            ${{ inputs.uiTests && '--uiTests' '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_3 && format('-- Sensitive_Alphanumeric_Info_3 "{0}"', inputs. Sensitive_Alphanumeric_Info_3) '' }} `
-            ${{ inputs.vsTestVersion && format('--vsTestVersion "{0}"', inputs.vsTestVersion) '' }} `
-            ${{ inputs.vstestLocation && format('--vstestLocation "{0}"', inputs.vstestLocation) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_4 && format('-- Sensitive_Alphanumeric_Info_4 "{0}"', inputs. Sensitive_Alphanumeric_Info_4) '' }} `
-            ${{ inputs.otherConsoleOptions '' }} `
-            ${{ inputs.diagnosticsEnabled && '--diagnosticsEnabled' '' }} `
-            ${{ inputs.collectDumpOn && format('--collectDumpOn "{0}"', inputs.collectDumpOn) '' }} `
-            ${{ inputs.rerunFailedTests && '--rerunFailedTests' '' }} `
-            ${{ inputs.rerunType && format('--rerunType "{0}"', inputs.rerunType) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_5 && format('-- Sensitive_Alphanumeric_Info_5 "{0}"', inputs. Sensitive_Alphanumeric_Info_5) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_6 && format('-- Sensitive_Alphanumeric_Info_6 "{0}"', inputs. Sensitive_Alphanumeric_Info_6) '' }} `
-            ${{ inputs.rerunMaxAttempts && format('--rerunMaxAttempts "{0}"', inputs.rerunMaxAttempts) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_7 && format('-- Sensitive_Alphanumeric_Info_7 "{0}"', inputs. Sensitive_Alphanumeric_Info_7) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_8 && format('-- Sensitive_Alphanumeric_Info_8 "{0}"', inputs. Sensitive_Alphanumeric_Info_8) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_9 && format('-- Sensitive_Alphanumeric_Info_9 "{0}"', inputs. Sensitive_Alphanumeric_Info_9) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_10 && format('-- Sensitive_Alphanumeric_Info_10 "{0}"', inputs. Sensitive_Alphanumeric_Info_10) '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_11 && format('-- Sensitive_Alphanumeric_Info_11 "{0}"', inputs. Sensitive_Alphanumeric_Info_11) '' }} `
-            ${{ inputs.dontDistribute && '--dontDistribute' '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_12 && '-- Sensitive_Alphanumeric_Info_12' '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_13 && '-- Sensitive_Alphanumeric_Info_13' '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_14 && '-- Sensitive_Alphanumeric_Info_14' '' }} `
-            ${{ inputs. Sensitive_Alphanumeric_Info_15 && format('-- Sensitive_Alphanumeric_Info_15 "{0}"', inputs. Sensitive_Alphanumeric
+            ${{ inputs.code-coverage-enabled && '--collect:"XPlat Code Coverage"' || '' }} `
+            ${{ inputs.test-filter-criteria && format('--filter "{0}"', inputs.test-filter-criteria) || '' }} `
+            ${{ inputs.run-settings-file && format('--settings "{0}"', inputs.run-settings-file) || '' }} `
+            ${{ inputs.custom-test-adapters && format('--TestAdapterPath "{0}"', inputs.custom-test-adapters) || '' }} `
+            ${{ inputs.run-in-parallel && '--parallel' || '' }} `
+            ${{ inputs.test-run-title && format('--testRunTitle "{0}"', inputs.test-run-title) || '' }} `
+            ${{ inputs.runOnlyImpactedTests && '--runOnlyImpactedTests' || '' }} `
+            ${{ inputs.uiTests && '--uiTests' || '' }} `
+            ${{ inputs.vstestLocationMethod && format('--vstestLocationMethod "{0}"', inputs.vstestLocationMethod) || '' }} `
+            ${{ inputs.vsTestVersion && format('--vsTestVersion "{0}"', inputs.vsTestVersion) || '' }} `
+            ${{ inputs.vstestLocation && format('--vstestLocation "{0}"', inputs.vstestLocation) || '' }} `
+            ${{ inputs.overrideTestrunParameters && format('--overrideTestrunParameters "{0}"', inputs.overrideTestrunParameters) || '' }} `
+            ${{ inputs.otherConsoleOptions || '' }} `
+            ${{ inputs.diagnosticsEnabled && '--diagnosticsEnabled' || '' }} `
+            ${{ inputs.collectDumpOn && format('--collectDumpOn "{0}"', inputs.collectDumpOn) || '' }} `
+            ${{ inputs.rerunFailedTests && '--rerunFailedTests' || '' }} `
+            ${{ inputs.rerunType && format('--rerunType "{0}"', inputs.rerunType) || '' }} `
+            ${{ inputs.rerunFailedThreshold && format('--rerunFailedThreshold "{0}"', inputs.rerunFailedThreshold) || '' }} `
+            ${{ inputs.rerunFailedTestCasesMaxLimit && format('--rerunFailedTestCasesMaxLimit "{0}"', inputs.rerunFailedTestCasesMaxLimit) || '' }} `
+            ${{ inputs.rerunMaxAttempts && format('--rerunMaxAttempts "{0}"', inputs.rerunMaxAttempts) || '' }} `
+            ${{ inputs.distributionBatchType && format('--distributionBatchType "{0}"', inputs.distributionBatchType) || '' }} `
+            ${{ inputs.batchingBasedOnAgentsOption && format('--batchingBasedOnAgentsOption "{0}"', inputs.batchingBasedOnAgentsOption) || '' }} `
+            ${{ inputs.customBatchSizeValue && format('--customBatchSizeValue "{0}"', inputs.customBatchSizeValue) || '' }} `
+            ${{ inputs.batchingBasedOnExecutionTimeOption && format('--batchingBasedOnExecutionTimeOption "{0}"', inputs.batchingBasedOnExecutionTimeOption) || '' }} `
+            ${{ inputs.customRunTimePerBatchValue && format('--customRunTimePerBatchValue "{0}"', inputs.customRunTimePerBatchValue) || '' }} `
+            ${{ inputs.dontDistribute && '--dontDistribute' || '' }} `
+            ${{ inputs.publishRunAttachments && '--publishRunAttachments' || '' }} `
+            ${{ inputs.donotPublishTestResults && '--donotPublishTestResults' || '' }} `
+            ${{ inputs.failOnMinTestsNotRun && '--failOnMinTestsNotRun' || '' }} `
+            ${{ inputs.minimumExpectedTests && format('--minimumExpectedTests "{0}"', inputs.minimumExpectedTests) || '' }}
