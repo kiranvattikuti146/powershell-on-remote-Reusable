@@ -136,14 +136,17 @@ jobs:
       - name: Build solution
         run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
 
-      - name: Run tests
+      - name: Run tests with Visual Studio Test Runner
         run: |
-          dotnet test `
-            --configuration ${{ inputs.configuration }} `
-            --logger "trx" `
-            --results-directory TestResults `
-            ${ inputs.code-coverage-enabled && '--collect:"XPlat Code Coverage"' '' } `
-            ${ inputs.test-filter-criteria && '--filter "${{ inputs.test-filter-criteria }}"' '' } `
-            ${ inputs.custom-test-adapters && '-- TestAdapterPath="${{ inputs.custom-test-adapters }}"' '' } `
-            ${ inputs.run-in-parallel && '--parallel' '' } `
-            ${ inputs.diagnosticsEnabled && '--diag:logfile.txt' '' }
+          $vstestArgs = ""
+          if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage ' }
+          if (${{ inputs.test-filter-criteria }}) { $vstestArgs += '/TestCaseFilter:"${{ inputs.test-filter-criteria }}" ' }
+          if (${{ inputs.custom-test-adapters }}) { $vstestArgs += '/TestAdapterPath:"${{ inputs.custom-test-adapters }}" ' }
+          if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel ' }
+          if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt ' }
+          if (${{ inputs.otherConsoleOptions }}) { $vstestArgs += '${{ inputs.otherConsoleOptions }} ' }
+
+          & "${{ inputs.vstestLocation }}" `
+            ${{ inputs.test-assembly }} `
+            /Settings:TestSettings.runsettings `
+            $vstestArgs
