@@ -1,5 +1,3 @@
-REUSABLE :
-
 name: VSTest Reusable Workflow
 
 on:
@@ -20,15 +18,9 @@ on:
       platform:
         required: false
         type: string
-      run-settings-file:
-        required: false
-        type: string
       code-coverage-enabled:
         required: false
         type: boolean
-      test-run-title:
-        required: false
-        type: string
       custom-test-adapters:
         required: false
         type: string
@@ -149,10 +141,8 @@ jobs:
             --results-directory "TestResults" `
             ${{ inputs.code-coverage-enabled && '--collect:"XPlat Code Coverage"' || '' }} `
             ${{ inputs.test-filter-criteria && format('--filter "{0}"', inputs.test-filter-criteria) || '' }} `
-            ${{ inputs.run-settings-file && format('--settings "{0}"', inputs.run-settings-file) || '' }} `
             ${{ inputs.custom-test-adapters && format('--TestAdapterPath "{0}"', inputs.custom-test-adapters) || '' }} `
             ${{ inputs.run-in-parallel && '--parallel' || '' }} `
-            ${{ inputs.test-run-title && format('--testRunTitle "{0}"', inputs.test-run-title) || '' }} `
             ${{ inputs.runOnlyImpactedTests && '--runOnlyImpactedTests' || '' }} `
             ${{ inputs.uiTests && '--uiTests' || '' }} `
             ${{ inputs.vstestLocationMethod && format('--vstestLocationMethod "{0}"', inputs.vstestLocationMethod) || '' }} `
