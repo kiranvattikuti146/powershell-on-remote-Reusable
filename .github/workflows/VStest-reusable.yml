@@ -42,16 +42,16 @@ on:
       tcmTestRun:
         required: false
         type: string
-      runOnlyImpactedTests:
+      sensitive-alphanumeric-info-1:
         required: false
         type: boolean
-      runAllTestsAfterXBuilds:
+      sensitive-alphanumeric-info-2:
         required: false
         type: string
       uiTests:
         required: false
         type: boolean
-      vstestLocationMethod:
+      sensitive-alphanumeric-info-3:
         required: false
         type: string
       vsTestVersion:
@@ -60,7 +60,7 @@ on:
       vstestLocation:
         required: false
         type: string
-      overrideTestrunParameters:
+      sensitive-alphanumeric-info-4:
         required: false
         type: string
       otherConsoleOptions:
@@ -78,43 +78,43 @@ on:
       rerunType:
         required: false
         type: string
-      rerunFailedThreshold:
+      sensitive-alphanumeric-info-5:
         required: false
         type: string
-      rerunFailedTestCasesMaxLimit:
+      sensitive-alphanumeric-info-6:
         required: false
         type: string
       rerunMaxAttempts:
         required: false
         type: string
-      distributionBatchType:
+      sensitive-alphanumeric-info-7:
         required: false
         type: string
-      batchingBasedOnAgentsOption:
+      sensitive-alphanumeric-info-8:
         required: false
         type: string
-      customBatchSizeValue:
+      sensitive-alphanumeric-info-9:
         required: false
         type: string
-      batchingBasedOnExecutionTimeOption:
+      sensitive-alphanumeric-info-10:
         required: false
         type: string
-      customRunTimePerBatchValue:
+      sensitive-alphanumeric-info-11:
         required: false
         type: string
       dontDistribute:
         required: false
         type: boolean
-      publishRunAttachments:
+      sensitive-alphanumeric-info-12:
         required: false
         type: boolean
-      donotPublishTestResults:
+      sensitive-alphanumeric-info-13:
         required: false
         type: boolean
-      failOnMinTestsNotRun:
+      sensitive-alphanumeric-info-14:
         required: false
         type: boolean
-      minimumExpectedTests:
+      sensitive-alphanumeric-info-15:
         required: false
         type: string
 
@@ -142,9 +142,8 @@ jobs:
             --configuration ${{ inputs.configuration }} `
             --logger "trx" `
             --results-directory TestResults `
-            --collect:"XPlat Code Coverage" `
-            --filter "${{ inputs.test-filter-criteria }}" `
-            -- TestAdapterPath="${{ inputs.custom-test-adapters }}" `
-               --blame `
-               --parallel=${{ inputs.run-in-parallel }} `
-               --diag:logfile.txt
+            ${ inputs.code-coverage-enabled && '--collect:"XPlat Code Coverage"' '' } `
+            ${ inputs.test-filter-criteria && '--filter "${{ inputs.test-filter-criteria }}"' '' } `
+            ${ inputs.custom-test-adapters && '-- TestAdapterPath="${{ inputs.custom-test-adapters }}"' '' } `
+            ${ inputs.run-in-parallel && '--parallel' '' } `
+            ${ inputs.diagnosticsEnabled && '--diag:logfile.txt' '' }
