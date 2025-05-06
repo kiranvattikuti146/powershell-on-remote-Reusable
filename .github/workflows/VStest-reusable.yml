@@ -18,9 +18,6 @@ on:
       platform:
         required: false
         type: string
-      run-settings-file:
-        required: false
-        type: string
       code-coverage-enabled:
         required: false
         type: boolean
