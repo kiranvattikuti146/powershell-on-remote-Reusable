@@ -42,25 +42,13 @@ on:
       tcmTestRun:
         required: false
         type: string
-      sensitive-alphanumeric-info-1:
-        required: false
-        type: boolean
-      sensitive-alphanumeric-info-2:
-        required: false
-        type: string
       uiTests:
         required: false
         type: boolean
-      sensitive-alphanumeric-info-3:
-        required: false
-        type: string
       vsTestVersion:
         required: false
         type: string
       vstestLocation:
-        required: false
-        type: string
-      sensitive-alphanumeric-info-4:
         required: false
         type: string
       otherConsoleOptions:
@@ -78,45 +66,12 @@ on:
       rerunType:
         required: false
         type: string
-      sensitive-alphanumeric-info-5:
-        required: false
-        type: string
-      sensitive-alphanumeric-info-6:
-        required: false
-        type: string
       rerunMaxAttempts:
-        required: false
-        type: string
-      sensitive-alphanumeric-info-7:
-        required: false
-        type: string
-      sensitive-alphanumeric-info-8:
-        required: false
-        type: string
-      sensitive-alphanumeric-info-9:
-        required: false
-        type: string
-      sensitive-alphanumeric-info-10:
-        required: false
-        type: string
-      sensitive-alphanumeric-info-11:
         required: false
         type: string
       dontDistribute:
         required: false
         type: boolean
-      sensitive-alphanumeric-info-12:
-        required: false
-        type: boolean
-      sensitive-alphanumeric-info-13:
-        required: false
-        type: boolean
-      sensitive-alphanumeric-info-14:
-        required: false
-        type: boolean
-      sensitive-alphanumeric-info-15:
-        required: false
-        type: string
 
 jobs:
   run-tests:
@@ -144,6 +99,8 @@ jobs:
           if (${{ inputs.custom-test-adapters }}) { $vstestArgs += '/TestAdapterPath:"${{ inputs.custom-test-adapters }}" ' }
           if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel ' }
           if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt ' }
+          if (${{ inputs.collectDumpOn }}) { $vstestArgs += '/CollectDump:${{ inputs.collectDumpOn }} ' }
+          if (${{ inputs.rerunFailedTests }}) { $vstestArgs += '/Rerun:${{ inputs.rerunType }} ' }
           if (${{ inputs.otherConsoleOptions }}) { $vstestArgs += '${{ inputs.otherConsoleOptions }} ' }
 
           & "${{ inputs.vstestLocation }}" `
