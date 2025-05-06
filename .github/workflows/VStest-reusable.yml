@@ -51,9 +51,6 @@ on:
       vstestLocation:
         required: false
         type: string
-      otherConsoleOptions:
-        required: false
-        type: string
       diagnosticsEnabled:
         required: false
         type: boolean
@@ -101,7 +98,6 @@ jobs:
           if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt ' }
           if (${{ inputs.collectDumpOn }}) { $vstestArgs += '/CollectDump:${{ inputs.collectDumpOn }} ' }
           if (${{ inputs.rerunFailedTests }}) { $vstestArgs += '/Rerun:${{ inputs.rerunType }} ' }
-          if (${{ inputs.otherConsoleOptions }}) { $vstestArgs += "${{ inputs.otherConsoleOptions }} " }
 
           & "${{ inputs.vstestLocation }}" `
             ${{ inputs.test-assembly }} `
