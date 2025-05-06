@@ -129,30 +129,30 @@ jobs:
           dotnet test `
             --logger "trx" `
             --results-directory "TestResults" `
-            ${{ inputs.code-coverage-enabled && '--collect:"XPlat Code Coverage"' || '' }} `
-            ${{ inputs.test-filter-criteria && format('--filter "{0}"', inputs.test-filter-criteria) || '' }} `
-            ${{ inputs.custom-test-adapters && format('--TestAdapterPath "{0}"', inputs.custom-test-adapters) || '' }} `
-            ${{ inputs.run-in-parallel && '--parallel' || '' }} `
-            ${{ inputs.uiTests && '--uiTests' || '' }} `
-            ${{ inputs.vstestLocationMethod && format('--vstestLocationMethod "{0}"', inputs.vstestLocationMethod) || '' }} `
-            ${{ inputs.vsTestVersion && format('--vsTestVersion "{0}"', inputs.vsTestVersion) || '' }} `
-            ${{ inputs.vstestLocation && format('--vstestLocation "{0}"', inputs.vstestLocation) || '' }} `
-            ${{ inputs.overrideTestrunParameters && format('--overrideTestrunParameters "{0}"', inputs.overrideTestrunParameters) || '' }} `
+            ${{ inputs.code-coverage-enabled && 'collect:"XPlat Code Coverage"' || '' }} `
+            ${{ inputs.test-filter-criteria && format('filter "{0}"', inputs.test-filter-criteria) || '' }} `
+            ${{ inputs.custom-test-adapters && format('TestAdapterPath "{0}"', inputs.custom-test-adapters) || '' }} `
+            ${{ inputs.run-in-parallel && 'parallel' || '' }} `
+            ${{ inputs.uiTests && 'uiTests' || '' }} `
+            ${{ inputs.vstestLocationMethod && format('vstestLocationMethod "{0}"', inputs.vstestLocationMethod) || '' }} `
+            ${{ inputs.vsTestVersion && format('vsTestVersion "{0}"', inputs.vsTestVersion) || '' }} `
+            ${{ inputs.vstestLocation && format('vstestLocation "{0}"', inputs.vstestLocation) || '' }} `
+            ${{ inputs.overrideTestrunParameters && format('overrideTestrunParameters "{0}"', inputs.overrideTestrunParameters) || '' }} `
             ${{ inputs.otherConsoleOptions || '' }} `
-            ${{ inputs.diagnosticsEnabled && '--diagnosticsEnabled' || '' }} `
-            ${{ inputs.collectDumpOn && format('--collectDumpOn "{0}"', inputs.collectDumpOn) || '' }} `
-            ${{ inputs.rerunFailedTests && '--rerunFailedTests' || '' }} `
-            ${{ inputs.rerunType && format('--rerunType "{0}"', inputs.rerunType) || '' }} `
-            ${{ inputs.rerunFailedThreshold && format('--rerunFailedThreshold "{0}"', inputs.rerunFailedThreshold) || '' }} `
-            ${{ inputs.rerunFailedTestCasesMaxLimit && format('--rerunFailedTestCasesMaxLimit "{0}"', inputs.rerunFailedTestCasesMaxLimit) || '' }} `
-            ${{ inputs.rerunMaxAttempts && format('--rerunMaxAttempts "{0}"', inputs.rerunMaxAttempts) || '' }} `
-            ${{ inputs.distributionBatchType && format('--distributionBatchType "{0}"', inputs.distributionBatchType) || '' }} `
-            ${{ inputs.batchingBasedOnAgentsOption && format('--batchingBasedOnAgentsOption "{0}"', inputs.batchingBasedOnAgentsOption) || '' }} `
-            ${{ inputs.customBatchSizeValue && format('--customBatchSizeValue "{0}"', inputs.customBatchSizeValue) || '' }} `
-            ${{ inputs.batchingBasedOnExecutionTimeOption && format('--batchingBasedOnExecutionTimeOption "{0}"', inputs.batchingBasedOnExecutionTimeOption) || '' }} `
-            ${{ inputs.customRunTimePerBatchValue && format('--customRunTimePerBatchValue "{0}"', inputs.customRunTimePerBatchValue) || '' }} `
-            ${{ inputs.dontDistribute && '--dontDistribute' || '' }} `
-            ${{ inputs.publishRunAttachments && '--publishRunAttachments' || '' }} `
-            ${{ inputs.donotPublishTestResults && '--donotPublishTestResults' || '' }} `
-            ${{ inputs.failOnMinTestsNotRun && '--failOnMinTestsNotRun' || '' }} `
-            ${{ inputs.minimumExpectedTests && format('--minimumExpectedTests "{0}"', inputs.minimumExpectedTests) || '' }}
+            ${{ inputs.diagnosticsEnabled && 'diagnosticsEnabled' || '' }} `
+            ${{ inputs.collectDumpOn && format('collectDumpOn "{0}"', inputs.collectDumpOn) || '' }} `
+            ${{ inputs.rerunFailedTests && 'rerunFailedTests' || '' }} `
+            ${{ inputs.rerunType && format('rerunType "{0}"', inputs.rerunType) || '' }} `
+            ${{ inputs.rerunFailedThreshold && format('rerunFailedThreshold "{0}"', inputs.rerunFailedThreshold) || '' }} `
+            ${{ inputs.rerunFailedTestCasesMaxLimit && format('rerunFailedTestCasesMaxLimit "{0}"', inputs.rerunFailedTestCasesMaxLimit) || '' }} `
+            ${{ inputs.rerunMaxAttempts && format('rerunMaxAttempts "{0}"', inputs.rerunMaxAttempts) || '' }} `
+            ${{ inputs.distributionBatchType && format('distributionBatchType "{0}"', inputs.distributionBatchType) || '' }} `
+            ${{ inputs.batchingBasedOnAgentsOption && format('batchingBasedOnAgentsOption "{0}"', inputs.batchingBasedOnAgentsOption) || '' }} `
+            ${{ inputs.customBatchSizeValue && format('customBatchSizeValue "{0}"', inputs.customBatchSizeValue) || '' }} `
+            ${{ inputs.batchingBasedOnExecutionTimeOption && format('batchingBasedOnExecutionTimeOption "{0}"', inputs.batchingBasedOnExecutionTimeOption) || '' }} `
+            ${{ inputs.customRunTimePerBatchValue && format('customRunTimePerBatchValue "{0}"', inputs.customRunTimePerBatchValue) || '' }} `
+            ${{ inputs.dontDistribute && 'dontDistribute' || '' }} `
+            ${{ inputs.publishRunAttachments && 'publishRunAttachments' || '' }} `
+            ${{ inputs.donotPublishTestResults && 'donotPublishTestResults' || '' }} `
+            ${{ inputs.failOnMinTestsNotRun && 'failOnMinTestsNotRun' || '' }} `
+            ${{ inputs.minimumExpectedTests && format('minimumExpectedTests "{0}"', inputs.minimumExpectedTests) || '' }}
