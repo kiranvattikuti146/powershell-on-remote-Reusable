@@ -9,9 +9,6 @@ on:
       test-assembly:
         required: true
         type: string
-      test-filter-criteria:
-        required: false
-        type: string
       configuration:
         required: true
         type: string
@@ -92,7 +89,6 @@ jobs:
         run: |
           $vstestArgs = ""
           if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage ' }
-          if (${{ inputs.test-filter-criteria }}) { $vstestArgs += '/TestCaseFilter:"${{ inputs.test-filter-criteria }}" ' }
           if (${{ inputs.custom-test-adapters }}) { $vstestArgs += '/TestAdapterPath:"${{ inputs.custom-test-adapters }}" ' }
           if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel ' }
           if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt ' }
