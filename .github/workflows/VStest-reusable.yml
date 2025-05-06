@@ -15,9 +15,6 @@ on:
       platform:
         required: false
         type: string
-      code-coverage-enabled:
-        required: false
-        type: boolean
       custom-test-adapters:
         required: false
         type: string
@@ -129,7 +126,6 @@ jobs:
           dotnet test `
             --logger "trx" `
             --results-directory "TestResults" `
-            ${{ inputs.code-coverage-enabled && 'collect:"XPlat Code Coverage"' || '' }} `
             ${{ inputs.test-filter-criteria && format('filter "{0}"', inputs.test-filter-criteria) || '' }} `
             ${{ inputs.custom-test-adapters && format('TestAdapterPath "{0}"', inputs.custom-test-adapters) || '' }} `
             ${{ inputs.run-in-parallel && 'parallel' || '' }} `
