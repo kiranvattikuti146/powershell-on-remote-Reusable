@@ -88,11 +88,23 @@ jobs:
       - name: Run tests with Visual Studio Test Runner
         shell: pwsh
         run: |
+          # Resolve test assemblies from the glob pattern
+          $testAssemblies = Get-ChildItem -Path . -Recurse -Filter "${{ inputs.test-assembly }}" | ForEach-Object { $_.FullName }
+          if (-not $testAssemblies) {
+            Write-Error "No test assemblies found matching the pattern '${{ inputs.test-assembly }}'."
+            exit 1
+          }
+
+          # Construct VSTest arguments
           $vstestArgs = @()
           if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage' }
           if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel' }
           if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt' }
           if (${{ inputs.rerunFailedTests }}) { $vstestArgs += "/Rerun:${{ inputs.rerunType }}" }
 
-          $command = "${{ inputs.vstestLocation }} ${{ inputs.test-assembly }} /Settings:TestSettings.runsettings $($vstestArgs -join ' ')"
-          Invoke-Expression $command
+          # Run VSTest for each resolved test assembly
+          foreach ($testAssembly in $testAssemblies) {
+            $command = "${{ inputs.vstestLocation }} $testAssembly /Settings:TestSettings.runsettings $($vstestArgs -join ' ')"
+            Write-Host "Executing: $command"
+            Invoke-Expression $command
+          }
