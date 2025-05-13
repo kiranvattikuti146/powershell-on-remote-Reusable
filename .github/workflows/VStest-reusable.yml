@@ -51,9 +51,6 @@ on:
       diagnosticsEnabled:
         required: false
         type: boolean
-      collectDumpOn:
-        required: false
-        type: string
       rerunFailedTests:
         required: false
         type: boolean
