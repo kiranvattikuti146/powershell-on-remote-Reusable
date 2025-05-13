@@ -3,7 +3,7 @@ name: VSTest Reusable Workflow
 on:
   workflow_call:
     inputs:
-      runsOn: 
+      runsOn: # Add runs-on as an input
         required: true
         type: string
       dotnet-version:
