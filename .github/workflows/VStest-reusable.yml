@@ -3,7 +3,7 @@ name: VSTest Reusable Workflow
 on:
   workflow_call:
     inputs:
-      runsOn: # Add runs-on as an input
+      runsOn:
         required: true
         type: string
       dotnet-version:
@@ -69,7 +69,7 @@ on:
 
 jobs:
   run-tests:
-    runs-on: ${{ inputs.runsOn }} # Use the runs-on value passed from the main workflow
+    runs-on: ${{ inputs.runsOn }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -86,14 +86,13 @@ jobs:
         run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
 
       - name: Run tests with Visual Studio Test Runner
+        shell: pwsh
         run: |
-          $vstestArgs = ""
-          if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage ' }
-          if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel ' }
-          if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt ' }
-          if (${{ inputs.rerunFailedTests }}) { $vstestArgs += '/Rerun:${{ inputs.rerunType }} ' }
+          $vstestArgs = @()
+          if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage' }
+          if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel' }
+          if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt' }
+          if (${{ inputs.rerunFailedTests }}) { $vstestArgs += "/Rerun:${{ inputs.rerunType }}" }
 
-          & "${{ inputs.vstestLocation }}" `
-            ${{ inputs.test-assembly }} `
-            /Settings:TestSettings.runsettings `
-            $vstestArgs
+          $command = "${{ inputs.vstestLocation }} ${{ inputs.test-assembly }} /Settings:TestSettings.runsettings $($vstestArgs -join ' ')"
+          Invoke-Expression $command
