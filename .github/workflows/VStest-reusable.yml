@@ -88,8 +88,12 @@ jobs:
       - name: Run tests with Visual Studio Test Runner
         shell: pwsh
         run: |
+          # Ensure the correct working directory
+          $workingDirectory = "${{ github.workspace }}"
+          Set-Location -Path $workingDirectory
+
           # Resolve test assemblies from the glob pattern
-          $testAssemblies = Get-ChildItem -Path . -Recurse -Filter "${{ inputs.test-assembly }}" | ForEach-Object { $_.FullName }
+          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -Filter "${{ inputs.test-assembly }}" | ForEach-Object { $_.FullName }
           if (-not $testAssemblies) {
             Write-Error "No test assemblies found matching the pattern '${{ inputs.test-assembly }}'."
             exit 1
