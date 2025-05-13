@@ -91,7 +91,6 @@ jobs:
           if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage ' }
           if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel ' }
           if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt ' }
-          if (${{ inputs.collectDumpOn }}) { $vstestArgs += '/CollectDump:${{ inputs.collectDumpOn }} ' }
           if (${{ inputs.rerunFailedTests }}) { $vstestArgs += '/Rerun:${{ inputs.rerunType }} ' }
 
           & "${{ inputs.vstestLocation }}" `
