@@ -77,10 +77,10 @@ jobs:
           dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore eShopOnWeb.sln
 
       - name: Build solution
-        run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
+        run: dotnet build eShopOnWeb.sln --configuration ${{ inputs.configuration }} --no-restore
 
       - name: Debug Directory Structure
         shell: pwsh
