@@ -77,10 +77,10 @@ jobs:
           dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Restore dependencies
-        run: dotnet restore UnitTests.csproj
+        run: dotnet restore tests/UnitTests/UnitTests.csproj
 
       - name: Build project
-        run: dotnet build UnitTests.csproj --configuration ${{ inputs.configuration }} --no-restore
+        run: dotnet build tests/UnitTests/UnitTests.csproj --configuration ${{ inputs.configuration }} --no-restore
 
       - name: Debug Directory Structure
         shell: pwsh
