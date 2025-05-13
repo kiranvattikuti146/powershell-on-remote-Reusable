@@ -15,6 +15,57 @@ on:
       configuration:
         required: true
         type: string
+      platform:
+        required: false
+        type: string
+      code-coverage-enabled:
+        required: false
+        type: boolean
+      test-run-title:
+        required: false
+        type: string
+      run-in-parallel:
+        required: false
+        type: boolean
+      testPlan:
+        required: false
+        type: string
+      testSuite:
+        required: false
+        type: string
+      testConfiguration:
+        required: false
+        type: string
+      tcmTestRun:
+        required: false
+        type: string
+      uiTests:
+        required: false
+        type: boolean
+      vsTestVersion:
+        required: false
+        type: string
+      vstestLocation:
+        required: false
+        type: string
+      diagnosticsEnabled:
+        required: false
+        type: boolean
+      collectDumpOn:
+        required: false
+        type: string
+      rerunFailedTests:
+        required: false
+        type: boolean
+      rerunType:
+        required: false
+        type: string
+      rerunMaxAttempts:
+        required: false
+        type: string
+      dontDistribute:
+        required: false
+        type: boolean
 
 jobs:
   run-tests:
@@ -61,9 +112,16 @@ jobs:
           Write-Host "Resolved test assemblies:"
           $testAssemblies | ForEach-Object { Write-Host $_ }
 
+          # Construct VSTest arguments
+          $vstestArgs = @()
+          if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage' }
+          if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel' }
+          if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt' }
+          if (${{ inputs.rerunFailedTests }}) { $vstestArgs += "/Rerun:${{ inputs.rerunType }}" }
+
           # Run VSTest for each resolved test assembly
           foreach ($testAssembly in $testAssemblies) {
-            $command = "vstest.console.exe `"$testAssembly`""
+            $command = "${{ inputs.vstestLocation }} `"$testAssembly`" /Settings:TestSettings.runsettings $($vstestArgs -join ' ')"
             Write-Host "Executing: $command"
             Invoke-Expression $command
           }
