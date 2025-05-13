@@ -85,6 +85,15 @@ jobs:
       - name: Build solution
         run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
 
+      - name: Debug Directory Structure
+        shell: pwsh
+        run: |
+          # Debug: List all files in the working directory
+          $workingDirectory = "${{ github.workspace }}"
+          Set-Location -Path $workingDirectory
+          Write-Host "Listing all files in the working directory:"
+          Get-ChildItem -Path $workingDirectory -Recurse | ForEach-Object { Write-Host $_.FullName }
+
       - name: Run tests with Visual Studio Test Runner
         shell: pwsh
         run: |
@@ -98,6 +107,10 @@ jobs:
             Write-Error "No test assemblies found matching the pattern '${{ inputs.test-assembly }}'."
             exit 1
           }
+
+          # Debug: List resolved test assemblies
+          Write-Host "Resolved test assemblies:"
+          $testAssemblies | ForEach-Object { Write-Host $_ }
 
           # Construct VSTest arguments
           $vstestArgs = @()
