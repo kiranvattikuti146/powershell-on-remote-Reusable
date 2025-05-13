@@ -92,8 +92,8 @@ jobs:
           $workingDirectory = "${{ github.workspace }}"
           Set-Location -Path $workingDirectory
 
-          # Resolve test assemblies from the glob pattern
-          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -Filter "${{ inputs.test-assembly }}" | ForEach-Object { $_.FullName }
+          # Resolve test assemblies manually (handle glob patterns like **/*)
+          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object { $_.FullName -like "*${{ inputs.test-assembly }}" } | ForEach-Object { $_.FullName }
           if (-not $testAssemblies) {
             Write-Error "No test assemblies found matching the pattern '${{ inputs.test-assembly }}'."
             exit 1
@@ -108,7 +108,7 @@ jobs:
 
           # Run VSTest for each resolved test assembly
           foreach ($testAssembly in $testAssemblies) {
-            $command = "${{ inputs.vstestLocation }} $testAssembly /Settings:TestSettings.runsettings $($vstestArgs -join ' ')"
+            $command = "${{ inputs.vstestLocation }} `"$testAssembly`" /Settings:TestSettings.runsettings $($vstestArgs -join ' ')"
             Write-Host "Executing: $command"
             Invoke-Expression $command
           }
