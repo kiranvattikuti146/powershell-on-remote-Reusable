@@ -21,9 +21,6 @@ on:
       test-run-title:
         required: false
         type: string
-      custom-test-adapters:
-        required: false
-        type: string
       run-in-parallel:
         required: false
         type: boolean
@@ -89,7 +86,6 @@ jobs:
         run: |
           $vstestArgs = ""
           if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage ' }
-          if (${{ inputs.custom-test-adapters }}) { $vstestArgs += '/TestAdapterPath:"${{ inputs.custom-test-adapters }}" ' }
           if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel ' }
           if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt ' }
           if (${{ inputs.collectDumpOn }}) { $vstestArgs += '/CollectDump:${{ inputs.collectDumpOn }} ' }
