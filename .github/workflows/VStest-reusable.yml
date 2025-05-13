@@ -3,6 +3,9 @@ name: VSTest Reusable Workflow
 on:
   workflow_call:
     inputs:
+      runsOn: 
+        required: true
+        type: string
       dotnet-version:
         required: true
         type: string
@@ -66,7 +69,7 @@ on:
 
 jobs:
   run-tests:
-    runs-on: windows-latest
+    runs-on: ${{ inputs.runsOn }} # Use the runs-on value passed from the main workflow
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
