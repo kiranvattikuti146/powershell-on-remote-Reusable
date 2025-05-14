@@ -114,12 +114,18 @@ jobs:
           Write-Host "Resolved test assemblies:"
           $testAssemblies | ForEach-Object { Write-Host $_ }
 
+          # Cast inputs to boolean values
+          $codeCoverageEnabled = [bool]${{ inputs.code-coverage-enabled }}
+          $runInParallel = [bool]${{ inputs.run-in-parallel }}
+          $diagnosticsEnabled = [bool]${{ inputs.diagnosticsEnabled }}
+          $rerunFailedTests = [bool]${{ inputs.rerunFailedTests }}
+
           # Construct VSTest arguments
           $vstestArgs = @()
-          if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage' }
-          if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel' }
-          if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt' }
-          if (${{ inputs.rerunFailedTests }}) { $vstestArgs += "/Rerun:${{ inputs.rerunType }}" }
+          if ($codeCoverageEnabled) { $vstestArgs += '/EnableCodeCoverage' }
+          if ($runInParallel) { $vstestArgs += '/Parallel' }
+          if ($diagnosticsEnabled) { $vstestArgs += '/Diag:logfile.txt' }
+          if ($rerunFailedTests) { $vstestArgs += "/Rerun:${{ inputs.rerunType }}" }
 
           # Ensure vstestLocation is provided
           if (-not "${{ inputs.vstestLocation }}") {
