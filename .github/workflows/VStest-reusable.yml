@@ -9,9 +9,8 @@ on:
       dotnet-version:
         required: true
         type: string
-      test-assembly:
-        required: true
-        type: string
+        
+        
       configuration:
         required: true
         type: string
