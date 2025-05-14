@@ -100,7 +100,9 @@ jobs:
 
           # Resolve test assemblies based on the provided test-assembly input
           $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object {
-            $_.FullName -match "${{ inputs.test-assembly }}"
+            $_.FullName -match "${{ inputs.test-assembly }}" -and
+            $_.FullName -notmatch "ref" -and
+            $_.FullName -notmatch "refint"
           } | ForEach-Object { $_.FullName }
 
           if (-not $testAssemblies) {
