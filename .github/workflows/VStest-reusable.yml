@@ -96,10 +96,10 @@ jobs:
           $workingDirectory = "${{ github.workspace }}"
           Set-Location -Path $workingDirectory
 
-          # Resolve test assemblies from the actual directory structure
-          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object { $_.FullName -like "${{ inputs.test-assembly }}" } | ForEach-Object { $_.FullName }
+          # Explicitly specify the path to the test assemblies
+          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object { $_.FullName -like "*tests/UnitTests/bin/Release/net8.0/UnitTests.dll" } | ForEach-Object { $_.FullName }
           if (-not $testAssemblies) {
-            Write-Error "No test assemblies found matching the pattern '${{ inputs.test-assembly }}'."
+            Write-Error "No test assemblies found matching the pattern '*tests/UnitTests/bin/Release/net8.0/UnitTests.dll'."
             exit 1
           }
 
