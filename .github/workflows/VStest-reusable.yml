@@ -27,6 +27,27 @@ on:
       run-in-parallel:
         required: false
         type: boolean
+      testPlan:
+        required: false
+        type: string
+      testSuite:
+        required: false
+        type: string
+      testConfiguration:
+        required: false
+        type: string
+      tcmTestRun:
+        required: false
+        type: string
+      uiTests:
+        required: false
+        type: boolean
+      vsTestVersion:
+        required: false
+        type: string
+      vstestLocation:
+        required: false
+        type: string
       diagnosticsEnabled:
         required: false
         type: boolean
@@ -39,6 +60,9 @@ on:
       rerunMaxAttempts:
         required: false
         type: string
+      dontDistribute:
+        required: false
+        type: boolean
 
 jobs:
   run-tests:
@@ -53,10 +77,10 @@ jobs:
           dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore tests/UnitTests/UnitTests.csproj
 
       - name: Build project
-        run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
+        run: dotnet build tests/UnitTests/UnitTests.csproj --configuration ${{ inputs.configuration }} --no-restore
 
       - name: Debug Directory Structure
         shell: pwsh
@@ -100,10 +124,15 @@ jobs:
           if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel' }
           if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt' }
           if (${{ inputs.rerunFailedTests }}) { $vstestArgs += "/Rerun:${{ inputs.rerunType }}" }
+          if (${{ inputs.testPlan }}) { $vstestArgs += "/TestPlan:${{ inputs.testPlan }}" }
+          if (${{ inputs.testSuite }}) { $vstestArgs += "/TestSuite:${{ inputs.testSuite }}" }
+          if (${{ inputs.testConfiguration }}) { $vstestArgs += "/TestConfiguration:${{ inputs.testConfiguration }}" }
+          if (${{ inputs.tcmTestRun }}) { $vstestArgs += "/TcmTestRun:${{ inputs.tcmTestRun }}" }
+          if (${{ inputs.uiTests }}) { $vstestArgs += "/UITests:${{ inputs.uiTests }}" }
 
           # Run VSTest for each resolved test assembly
           foreach ($testAssembly in $testAssemblies) {
-            $command = "${{ env.VSTEST_PATH }} `"$testAssembly`" $($vstestArgs -join ' ')"
+            $command = "${{ env.VSTEST_PATH }} `"$testAssembly`" /Settings:TestSettings.runsettings $($vstestArgs -join ' ')"
             Write-Host "Executing: $command"
             Invoke-Expression $command
           }
