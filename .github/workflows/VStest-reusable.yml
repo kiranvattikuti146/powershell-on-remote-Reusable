@@ -99,7 +99,7 @@ jobs:
           Set-Location -Path $workingDirectory
 
           # Resolve test assemblies from the bin directory
-          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object { $_.FullName -match "bin/.*/${{ inputs.configuration }}/.*Tests.dll" } | ForEach-Object { $_.FullName }
+          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object { $_.FullName -match "bin/.*/${{ inputs.configuration }}/.*.dll" } | ForEach-Object { $_.FullName }
           if (-not $testAssemblies) {
             Write-Error "No test assemblies found matching the pattern '${{ inputs.test-assembly }}'."
             exit 1
