@@ -98,8 +98,11 @@ jobs:
           $workingDirectory = "${{ github.workspace }}"
           Set-Location -Path $workingDirectory
 
-          # Resolve test assemblies from the bin directory
-          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object { $_.FullName -match "bin/.*/${{ inputs.configuration }}/.*.dll" } | ForEach-Object { $_.FullName }
+          # Resolve test assemblies based on the provided test-assembly input
+          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object {
+            $_.FullName -match "${{ inputs.test-assembly }}"
+          } | ForEach-Object { $_.FullName }
+
           if (-not $testAssemblies) {
             Write-Error "No test assemblies found matching the pattern '${{ inputs.test-assembly }}'."
             exit 1
@@ -115,6 +118,12 @@ jobs:
           if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel' }
           if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt' }
           if (${{ inputs.rerunFailedTests }}) { $vstestArgs += "/Rerun:${{ inputs.rerunType }}" }
+
+          # Ensure vstestLocation is provided
+          if (-not "${{ inputs.vstestLocation }}") {
+            Write-Error "The vstestLocation input is required but was not provided."
+            exit 1
+          }
 
           # Run VSTest for each resolved test assembly
           foreach ($testAssembly in $testAssemblies) {
