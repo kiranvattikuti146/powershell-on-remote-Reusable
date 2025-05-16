@@ -74,3 +74,4 @@ jobs:
           } catch {
               Write-Error "An error occurred: $_"
               exit 1
+          }
