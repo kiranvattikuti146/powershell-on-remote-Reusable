@@ -1,138 +1,76 @@
-name: VSTest Reusable Workflow
+name: PowerShell Task
 
 on:
   workflow_call:
     inputs:
-      runsOn:
+      Machines:
         required: true
         type: string
-      dotnet-version:
+      UserName:
         required: true
         type: string
-      test-assembly:
+      UserPassword:
         required: true
         type: string
-      configuration:
+      ScriptType:
         required: true
         type: string
-      platform:
+      ScriptPath:
         required: false
         type: string
-      code-coverage-enabled:
-        required: false
-        type: boolean
-      test-run-title:
+      InlineScript:
         required: false
         type: string
-      run-in-parallel:
-        required: false
-        type: boolean
-      testPlan:
+      ScriptArguments:
         required: false
         type: string
-      testSuite:
+      SessionVariables:
         required: false
         type: string
-      testConfiguration:
-        required: false
-        type: string
-      tcmTestRun:
-        required: false
-        type: string
-      uiTests:
-        required: false
-        type: boolean
-      vsTestVersion:
-        required: false
-        type: string
-      vstestLocation:
-        required: false
-        type: string
-      diagnosticsEnabled:
-        required: false
-        type: boolean
-      rerunFailedTests:
-        required: false
-        type: boolean
-      rerunType:
-        required: false
-        type: string
-      rerunMaxAttempts:
-        required: false
-        type: string
-      dontDistribute:
-        required: false
-        type: boolean
 
 jobs:
-  run-tests:
-    runs-on: ${{ inputs.runsOn }}
+  execute-powershell:
+    runs-on: self-hosted
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ inputs.dotnet-version }}
-
-      - name: Restore dependencies
-        run: dotnet restore tests/UnitTests/UnitTests.csproj
-
-      - name: Build project
-        run: dotnet build tests/UnitTests/UnitTests.csproj --configuration ${{ inputs.configuration }} --no-restore
-
-      - name: Debug Directory Structure
-        shell: pwsh
+      - name: Execute PowerShell Script
         run: |
-          $workingDirectory = "${{ github.workspace }}"
-          Set-Location -Path $workingDirectory
-          Write-Host "Listing all files in the working directory:"
-          Get-ChildItem -Path $workingDirectory -Recurse | ForEach-Object { Write-Host $_.FullName }
+          try {
+              # Assign inputs to variables
+              $machines = "${{ inputs.Machines }}"
+              $username = "${{ inputs.UserName }}"
+              $password = "${{ inputs.UserPassword }}"
+              $scriptType = "${{ inputs.ScriptType }}"
+              $scriptPath = "${{ inputs.ScriptPath }}"
+              $inlineScript = "${{ inputs.InlineScript }}"
+              $scriptArguments = "${{ inputs.ScriptArguments }}"
+              $sessionVariables = "${{ inputs.SessionVariables }}"
+              
+              # Convert password to secure string and create a credential object
+              $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+              $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
-      - name: Locate VSTest Console
-        shell: pwsh
-        run: |
-          # Search for vstest.console.exe dynamically
-          $vstestPath = Get-ChildItem -Path "C:\Program Files" -Recurse -Filter "vstest.console.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $vstestPath) {
-            Write-Error "vstest.console.exe not found on the system."
-            exit 1
-          }
-          Write-Host "Found vstest.console.exe at: $($vstestPath.FullName)"
-          echo "VSTEST_PATH=$($vstestPath.FullName)" >> $GITHUB_ENV
-
-      - name: Run tests with Visual Studio Test Runner
-        shell: pwsh
-        run: |
-          $workingDirectory = "${{ github.workspace }}"
-          Set-Location -Path $workingDirectory
-
-          # Adjust test assembly pattern dynamically
-          $testAssemblies = Get-ChildItem -Path $workingDirectory -Recurse -File | Where-Object { $_.FullName -like "*${{ inputs.test-assembly }}" } | ForEach-Object { $_.FullName }
-          if (-not $testAssemblies) {
-            Write-Error "No test assemblies found matching the pattern '*${{ inputs.test-assembly }}'."
-            exit 1
-          }
-
-          Write-Host "Resolved test assemblies:"
-          $testAssemblies | ForEach-Object { Write-Host $_ }
-
-          # Construct VSTest arguments
-          $vstestArgs = @()
-          if (${{ inputs.code-coverage-enabled }}) { $vstestArgs += '/EnableCodeCoverage' }
-          if (${{ inputs.run-in-parallel }}) { $vstestArgs += '/Parallel' }
-          if (${{ inputs.diagnosticsEnabled }}) { $vstestArgs += '/Diag:logfile.txt' }
-          if (${{ inputs.rerunFailedTests }}) { $vstestArgs += "/Rerun:${{ inputs.rerunType }}" }
-          if (${{ inputs.testPlan }}) { $vstestArgs += "/TestPlan:${{ inputs.testPlan }}" }
-          if (${{ inputs.testSuite }}) { $vstestArgs += "/TestSuite:${{ inputs.testSuite }}" }
-          if (${{ inputs.testConfiguration }}) { $vstestArgs += "/TestConfiguration:${{ inputs.testConfiguration }}" }
-          if (${{ inputs.tcmTestRun }}) { $vstestArgs += "/TcmTestRun:${{ inputs.tcmTestRun }}" }
-          if (${{ inputs.uiTests }}) { $vstestArgs += "/UITests:${{ inputs.uiTests }}" }
-
-          # Run VSTest for each resolved test assembly
-          foreach ($testAssembly in $testAssemblies) {
-            $command = "${{ env.VSTEST_PATH }} `"$testAssembly`" /Settings:TestSettings.runsettings $($vstestArgs -join ' ')"
-            Write-Host "Executing: $command"
-            Invoke-Expression $command
-          }
+              # Add the specific IP address to TrustedHosts
+              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
+              Invoke-Command -ComputerName ${machines} -Credential ${credential} -ScriptBlock { $inlineScript } -Verbose
+              $pw_result = Invoke-Command -ComputerName ${machines} -Credential ${credential} -ScriptBlock { $inlineScript } -Verbose
+              Write-Output $pw_result
+              Write-Host $pw_result
+              # Execute based on ScriptType
+              if ($scriptType -eq 'FilePath') {
+                  if (-not $scriptPath) {
+                      throw "ScriptPath is required when ScriptType is 'FilePath'."
+                  }
+                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments
+              } elseif ($scriptType -eq 'Inline') {
+                  if (-not $inlineScript) {
+                      throw "InlineScript is required when ScriptType is 'Inline'."
+                  }
+                  Invoke-Command -ComputerName ${machines} -Credential ${credential} -ScriptBlock { $inlineScript } -Verbose
+                  Write-Output $pw_result
+                  Write-Host $pw_result
+              } else {
+                  throw "Invalid ScriptType provided. Valid values are 'FilePath' or 'Inline'."
+              }
+          } catch {
+              Write-Error "An error occurred: $_"
+              exit 1
