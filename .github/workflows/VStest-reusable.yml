@@ -52,6 +52,9 @@ jobs:
               # Add the specific IP address to TrustedHosts
               Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
 
+              # Test connectivity to the remote machine
+              Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
+
               # Execute based on ScriptType
               if ($scriptType -eq 'FilePath') {
                   if (-not $scriptPath) {
