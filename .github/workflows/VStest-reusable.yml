@@ -51,10 +51,7 @@ jobs:
 
               # Add the specific IP address to TrustedHosts
               Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
-              Invoke-Command -ComputerName ${machines} -Credential ${credential} -ScriptBlock { $inlineScript } -Verbose
-              $pw_result = Invoke-Command -ComputerName ${machines} -Credential ${credential} -ScriptBlock { $inlineScript } -Verbose
-              Write-Output $pw_result
-              Write-Host $pw_result
+
               # Execute based on ScriptType
               if ($scriptType -eq 'FilePath') {
                   if (-not $scriptPath) {
@@ -65,7 +62,8 @@ jobs:
                   if (-not $inlineScript) {
                       throw "InlineScript is required when ScriptType is 'Inline'."
                   }
-                  Invoke-Command -ComputerName ${machines} -Credential ${credential} -ScriptBlock { $inlineScript } -Verbose
+                  $scriptBlock = [ScriptBlock]::Create($inlineScript)
+                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose
                   Write-Output $pw_result
                   Write-Host $pw_result
               } else {
