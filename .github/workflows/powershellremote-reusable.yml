@@ -43,10 +43,6 @@ on:
         required: false
         type: string
         default: 'stop'
-      ignoreLASTEXITCODE:
-        required: false
-        type: boolean
-        default: false
       WorkingDirectory:
         required: false
         type: string
@@ -75,7 +71,6 @@ jobs:
               $authentication = "${{ inputs. AuthenticationMechanism}}"
               $sessionOptions = "${{ inputs. NewPsSessionOptionArguments}}"
               $errorAction = "${{ inputs. ErrorActionPreference}}"
-              $ignoreLastExitCode = [bool]${{ inputs.ignoreLASTEXITCODE }}
               $workingDirectory = "${{ inputs.WorkingDirectory }}"
               $runInParallel = [bool]${{ inputs. RunPowershellInParallel}}
 
