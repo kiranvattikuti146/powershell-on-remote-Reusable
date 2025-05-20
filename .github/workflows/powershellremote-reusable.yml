@@ -75,21 +75,21 @@ jobs:
               $inlineScript = "${{ inputs.InlineScript }}"
               $scriptArguments = "${{ inputs.ScriptArguments }}"
               $sessionVariables = "${{ inputs.SessionVariables }}"
-              $protocol = "${{ inputs. CommunicationProtocol }}"
-              $authentication = "${{ inputs. AuthenticationMechanism }}"
-              $sessionOptions = "${{ inputs. NewPsSessionOptionArguments }}"
-              $errorAction = "${{ inputs. ErrorActionPreference }}"
+              $protocol = "${{ inputs. CommunicationProtocol}}"
+              $authentication = "${{ inputs. AuthenticationMechanism}}"
+              $sessionOptions = "${{ inputs. NewPsSessionOptionArguments}}"
+              $errorAction = "${{ inputs. ErrorActionPreference}}"
               $failOnStderr = ${{ inputs.failOnStderr }}
               $ignoreLastExitCode = ${{ inputs.ignoreLASTEXITCODE }}
               $workingDirectory = "${{ inputs.WorkingDirectory }}"
-              $runInParallel = ${{ inputs. RunPowershellInParallel }}
+              $runInParallel = ${{ inputs. RunPowershellInParallel}}
 
               # Convert password to secure string and create a credential object
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
               # Add the specific IP address to TrustedHosts
-              Set-Item -Path WSMan: localhostClientTrustedHosts -Value $machines -Force
+              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
 
               # Test connectivity to the remote machine
               Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
@@ -107,7 +107,7 @@ jobs:
                   if (-not $inlineScript) {
                       throw "InlineScript is required when ScriptType is 'Inline'."
                   }
-                  $scriptBlock = [ScriptBlock] ::Create($inlineScript)
+                  $scriptBlock = [ScriptBlock]::Create($inlineScript)
                   $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose -SessionOption $sessionOption
                   Write-Output $pw_result
                   Write-Host $pw_result
