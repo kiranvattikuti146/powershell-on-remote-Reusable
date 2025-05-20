@@ -43,10 +43,6 @@ on:
         required: false
         type: string
         default: 'stop'
-      failOnStderr:
-        required: false
-        type: boolean
-        default: false
       ignoreLASTEXITCODE:
         required: false
         type: boolean
@@ -79,7 +75,6 @@ jobs:
               $authentication = "${{ inputs. AuthenticationMechanism}}"
               $sessionOptions = "${{ inputs. NewPsSessionOptionArguments}}"
               $errorAction = "${{ inputs. ErrorActionPreference}}"
-              $failOnStderr = [bool]${{ inputs.failOnStderr }}
               $ignoreLastExitCode = [bool]${{ inputs.ignoreLASTEXITCODE }}
               $workingDirectory = "${{ inputs.WorkingDirectory }}"
               $runInParallel = [bool]${{ inputs. RunPowershellInParallel}}
@@ -107,7 +102,7 @@ jobs:
                   if (-not $inlineScript) {
                       throw "InlineScript is required when ScriptType is 'Inline'."
                   }
-                  $scriptBlock = [ScriptBlock]::Create($inlineScript)
+                  $scriptBlock = [ScriptBlock] ::Create($inlineScript)
                   $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose -SessionOption $sessionOption
                   Write-Output $pw_result
                   Write-Host $pw_result
