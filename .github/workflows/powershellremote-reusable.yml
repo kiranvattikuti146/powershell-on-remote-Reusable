@@ -79,17 +79,17 @@ jobs:
               $authentication = "${{ inputs. AuthenticationMechanism}}"
               $sessionOptions = "${{ inputs. NewPsSessionOptionArguments}}"
               $errorAction = "${{ inputs. ErrorActionPreference}}"
-              $failOnStderr = ${{ inputs.failOnStderr }}
-              $ignoreLastExitCode = ${{ inputs.ignoreLASTEXITCODE }}
+              $failOnStderr = [bool]${{ inputs.failOnStderr }}
+              $ignoreLastExitCode = [bool]${{ inputs.ignoreLASTEXITCODE }}
               $workingDirectory = "${{ inputs.WorkingDirectory }}"
-              $runInParallel = ${{ inputs. RunPowershellInParallel}}
+              $runInParallel = [bool]${{ inputs. RunPowershellInParallel}}
 
               # Convert password to secure string and create a credential object
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
               # Add the specific IP address to TrustedHosts
-              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
+              Set-Item -Path WSMan: localhostClientTrustedHosts -Value $machines -Force
 
               # Test connectivity to the remote machine
               Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
