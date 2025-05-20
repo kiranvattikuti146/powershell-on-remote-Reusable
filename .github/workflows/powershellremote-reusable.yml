@@ -27,6 +27,37 @@ on:
       SessionVariables:
         required: false
         type: string
+      CommunicationProtocol:
+        required: false
+        type: string
+        default: 'Https'
+      AuthenticationMechanism:
+        required: false
+        type: string
+        default: 'Default'
+      NewPsSessionOptionArguments:
+        required: false
+        type: string
+        default: '-SkipCACheck -IdleTimeout 7200000 -OperationTimeout 0 -OutputBufferingMode Block'
+      ErrorActionPreference:
+        required: false
+        type: string
+        default: 'stop'
+      failOnStderr:
+        required: false
+        type: boolean
+        default: false
+      ignoreLASTEXITCODE:
+        required: false
+        type: boolean
+        default: false
+      WorkingDirectory:
+        required: false
+        type: string
+      RunPowershellInParallel:
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   execute-powershell:
@@ -44,29 +75,40 @@ jobs:
               $inlineScript = "${{ inputs.InlineScript }}"
               $scriptArguments = "${{ inputs.ScriptArguments }}"
               $sessionVariables = "${{ inputs.SessionVariables }}"
-              
+              $protocol = "${{ inputs. CommunicationProtocol }}"
+              $authentication = "${{ inputs. AuthenticationMechanism }}"
+              $sessionOptions = "${{ inputs. NewPsSessionOptionArguments }}"
+              $errorAction = "${{ inputs. ErrorActionPreference }}"
+              $failOnStderr = ${{ inputs.failOnStderr }}
+              $ignoreLastExitCode = ${{ inputs.ignoreLASTEXITCODE }}
+              $workingDirectory = "${{ inputs.WorkingDirectory }}"
+              $runInParallel = ${{ inputs. RunPowershellInParallel }}
+
               # Convert password to secure string and create a credential object
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
               # Add the specific IP address to TrustedHosts
-              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
+              Set-Item -Path WSMan: localhostClientTrustedHosts -Value $machines -Force
 
               # Test connectivity to the remote machine
               Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
+
+              # Configure session options
+              $sessionOption = New-PSSessionOption $sessionOptions
 
               # Execute based on ScriptType
               if ($scriptType -eq 'FilePath') {
                   if (-not $scriptPath) {
                       throw "ScriptPath is required when ScriptType is 'FilePath'."
                   }
-                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments
+                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments -SessionOption $sessionOption
               } elseif ($scriptType -eq 'Inline') {
                   if (-not $inlineScript) {
                       throw "InlineScript is required when ScriptType is 'Inline'."
                   }
-                  $scriptBlock = [ScriptBlock]::Create($inlineScript)
-                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose
+                  $scriptBlock = [ScriptBlock] ::Create($inlineScript)
+                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose -SessionOption $sessionOption
                   Write-Output $pw_result
                   Write-Host $pw_result
               } else {
