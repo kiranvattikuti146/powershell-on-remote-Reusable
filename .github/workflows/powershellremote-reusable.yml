@@ -39,9 +39,9 @@ jobs:
               $password = "${{ inputs.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
               
-              # Explicitly cast inputs to boolean
-              $cleanTarget = [bool]${{ inputs.CleanTarget }}
-              $copyFilesInParallel = [bool]${{ inputs.CopyFilesInParallel }}
+              # Explicitly handle boolean inputs
+              $cleanTarget = "${{ inputs.CleanTarget }}" -eq "true"
+              $copyFilesInParallel = "${{ inputs.CopyFilesInParallel }}" -eq "true"
 
               # Convert password to secure string and create a credential object
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
