@@ -38,15 +38,17 @@ jobs:
               $username = "${{ inputs.AdminUserName }}"
               $password = "${{ inputs.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
-              $cleanTarget = ${{ inputs.CleanTarget }}
-              $copyFilesInParallel = ${{ inputs.CopyFilesInParallel }}
+              
+              # Explicitly cast inputs to boolean
+              $cleanTarget = [bool]${{ inputs.CleanTarget }}
+              $copyFilesInParallel = [bool]${{ inputs.CopyFilesInParallel }}
 
               # Convert password to secure string and create a credential object
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
               # Add the specific IP address to TrustedHosts
-              Set-Item -Path WSMan: localhostClientTrustedHosts -Value $machines -Force
+              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
 
               # Test connectivity to the remote machine
               Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
