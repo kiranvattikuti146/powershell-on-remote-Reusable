@@ -38,37 +38,37 @@ jobs:
               $username = "${{ inputs.AdminUserName }}"
               $password = "${{ inputs.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
-              
-              # Explicitly handle boolean inputs
-              $cleanTarget = "${{ inputs.CleanTarget }}" -eq "true"
-              $copyFilesInParallel = "${{ inputs.CopyFilesInParallel }}" -eq "true"
+              $cleanTarget = ${{ inputs.CleanTarget }}
+              $copyFilesInParallel = ${{ inputs.CopyFilesInParallel }}
 
               # Convert password to secure string and create a credential object
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
-              # Add the specific IP address to TrustedHosts
-              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
-
-              # Test connectivity to the remote machine
-              Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
+              # Map the network share
+              Write-Host "Mapping network share: $targetPath"
+              net use $targetPath /user:$username $password
 
               # Clean target if requested
               if ($cleanTarget) {
                   Write-Host "Cleaning target path: $targetPath"
-                  Remove-Item -Path $targetPath -Recurse -Force
+                  Remove-Item -Path $targetPath\* -Recurse -Force
               }
 
-              # Copy files based on parallel or sequential mode
+              # Copy files using robocopy
               if ($copyFilesInParallel) {
                   Write-Host "Copying files in parallel from $sourcePath to $targetPath"
                   Start-Job -ScriptBlock {
-                      Copy-Item -Path $using:sourcePath -Destination $using:targetPath -Recurse -Force
+                      robocopy $using:sourcePath $using:targetPath /MIR /Z /R:3 /W:5
                   } | Wait-Job
               } else {
                   Write-Host "Copying files sequentially from $sourcePath to $targetPath"
-                  Copy-Item -Path $sourcePath -Destination $targetPath -Recurse -Force
+                  robocopy $sourcePath $targetPath /MIR /Z /R:3 /W:5
               }
+
+              # Unmap the network share
+              Write-Host "Unmapping network share: $targetPath"
+              net use $targetPath /delete
           } catch {
               Write-Error "An error occurred: $_"
               exit 1
