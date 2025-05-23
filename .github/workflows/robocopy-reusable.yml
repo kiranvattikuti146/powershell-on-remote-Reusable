@@ -34,14 +34,18 @@ jobs:
         shell: pwsh
         run: |
           try {
+              # Assign and cast inputs
               $sourcePath = "${{ inputs.SourcePath }}"
               $machines = "${{ inputs.MachineNames }}"
               $username = "${{ inputs.AdminUserName }}"
               $password = "${{ secrets.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
-              $cleanTarget = ${{ inputs.CleanTarget }}
-              $copyFilesInParallel = ${{ inputs.CopyFilesInParallel }}
 
+              # Booleans must be cast from string
+              $cleanTarget = [System.Convert]::ToBoolean("${{ inputs.CleanTarget }}")
+              $copyFilesInParallel = [System.Convert]::ToBoolean("${{ inputs.CopyFilesInParallel }}")
+
+              # Convert password to secure string and create credential
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
