@@ -30,7 +30,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Execute PowerShell Script
+      - name: Execute Robocopy via PowerShell
         shell: pwsh
         run: |
           try {
@@ -40,20 +40,9 @@ jobs:
               $password = "${{ secrets.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
 
-              # ✅ Handle missing or empty optional inputs safely
-              $cleanInput = "${{ inputs.CleanTarget }}"
-              $cleanTarget = if (![string]::IsNullOrEmpty($cleanInput)) {
-                  [System.Convert]::ToBoolean($cleanInput)
-              } else {
-                  $false
-              }
-
-              $parallelInput = "${{ inputs.CopyFilesInParallel }}"
-              $copyFilesInParallel = if (![string]::IsNullOrEmpty($parallelInput)) {
-                  [System.Convert]::ToBoolean($parallelInput)
-              } else {
-                  $false
-              }
+              # ✅ Use known booleans safely
+              $cleanTarget = [bool]::Parse("${{ inputs.CleanTarget || 'false' }}")
+              $copyInParallel = [bool]::Parse("${{ inputs.CopyFilesInParallel || 'false' }}")
 
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
@@ -62,12 +51,8 @@ jobs:
               net use $targetPath /user:$username $password
 
               $robocopyOptions = "/MIR /Z /R:3 /W:5"
-              if ($copyFilesInParallel) {
-                  $robocopyOptions += " /MT:8"
-              }
-              if ($cleanTarget) {
-                  $robocopyOptions += " /PURGE"
-              }
+              if ($copyInParallel) { $robocopyOptions += " /MT:8" }
+              if ($cleanTarget) { $robocopyOptions += " /PURGE" }
 
               Write-Host "Running Robocopy with options: $robocopyOptions"
               robocopy $sourcePath $targetPath $robocopyOptions
