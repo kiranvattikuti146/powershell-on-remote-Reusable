@@ -9,6 +9,12 @@ on:
       MachineNames:
         required: true
         type: string
+      AdminUserName:
+        required: true
+        type: string
+      AdminPassword:
+        required: true
+        type: string
       TargetPath:
         required: true
         type: string
@@ -30,6 +36,8 @@ jobs:
           try {
               $sourcePath = "${{ inputs.SourcePath }}"
               $machines = "${{ inputs.MachineNames }}"
+              $adminUserName = "${{ inputs.AdminUserName }}"
+              $adminPassword = "${{ inputs.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
 
               # Convert inputs to boolean values
@@ -41,7 +49,10 @@ jobs:
               if ($copyInParallel) { $robocopyOptions += "/MT:8" }
               if ($cleanTarget -and -not $robocopyOptions.Contains("/MIR")) { $robocopyOptions += "/PURGE" }
 
+              Write-Host "Admin Username: $adminUserName"
+              Write-Host "Admin Password: $adminPassword"
               Write-Host "Running Robocopy with options: $robocopyOptions"
+
               robocopy $sourcePath $targetPath @robocopyOptions
 
               # Capture the exit code
