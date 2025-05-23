@@ -49,7 +49,7 @@ jobs:
               Write-Host "Mapping network share: $targetPath"
               net use $targetPath /user:$username $password
 
-              # Construct robocopy base command
+              # Build robocopy options
               $robocopyOptions = "/MIR /Z /R:3 /W:5"
               if ($copyFilesInParallel) {
                   $robocopyOptions += " /MT:8"
