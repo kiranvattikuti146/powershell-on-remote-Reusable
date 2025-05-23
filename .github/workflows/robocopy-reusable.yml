@@ -9,9 +9,6 @@ on:
       MachineNames:
         required: true
         type: string
-      AdminUserName:
-        required: true
-        type: string
       TargetPath:
         required: true
         type: string
@@ -21,9 +18,6 @@ on:
       CopyFilesInParallel:
         required: false
         type: boolean
-    secrets:
-      AdminPassword:
-        required: true
 
 jobs:
   execute-powershell:
@@ -36,19 +30,14 @@ jobs:
           try {
               $sourcePath = "${{ inputs.SourcePath }}"
               $machines = "${{ inputs.MachineNames }}"
-              $username = "${{ inputs.AdminUserName }}"
-              $password = "${{ secrets.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
 
-              # ✅ Use known booleans safely
-              $cleanTarget = [bool]::Parse("${{ inputs.CleanTarget || 'false' }}")
-              $copyInParallel = [bool]::Parse("${{ inputs.CopyFilesInParallel || 'false' }}")
-
-              $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
-              $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
+              # Use known booleans safely
+              $cleanTarget = [bool]::Parse("${{ inputs.CleanTarget 'false' }}")
+              $copyInParallel = [bool]::Parse("${{ inputs.CopyFilesInParallel 'false' }}")
 
               Write-Host "Mapping network share: $targetPath"
-              net use $targetPath /user:$username $password
+              net use $targetPath
 
               $robocopyOptions = "/MIR /Z /R:3 /W:5"
               if ($copyInParallel) { $robocopyOptions += " /MT:8" }
