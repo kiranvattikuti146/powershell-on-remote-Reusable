@@ -34,25 +34,33 @@ jobs:
         shell: pwsh
         run: |
           try {
-              # Assign and cast inputs
               $sourcePath = "${{ inputs.SourcePath }}"
               $machines = "${{ inputs.MachineNames }}"
               $username = "${{ inputs.AdminUserName }}"
               $password = "${{ secrets.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
 
-              # Booleans must be cast from string
-              $cleanTarget = [System.Convert]::ToBoolean("${{ inputs.CleanTarget }}")
-              $copyFilesInParallel = [System.Convert]::ToBoolean("${{ inputs.CopyFilesInParallel }}")
+              # ✅ Handle missing or empty optional inputs safely
+              $cleanInput = "${{ inputs.CleanTarget }}"
+              $cleanTarget = if (![string]::IsNullOrEmpty($cleanInput)) {
+                  [System.Convert]::ToBoolean($cleanInput)
+              } else {
+                  $false
+              }
 
-              # Convert password to secure string and create credential
+              $parallelInput = "${{ inputs.CopyFilesInParallel }}"
+              $copyFilesInParallel = if (![string]::IsNullOrEmpty($parallelInput)) {
+                  [System.Convert]::ToBoolean($parallelInput)
+              } else {
+                  $false
+              }
+
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
               Write-Host "Mapping network share: $targetPath"
               net use $targetPath /user:$username $password
 
-              # Build robocopy options
               $robocopyOptions = "/MIR /Z /R:3 /W:5"
               if ($copyFilesInParallel) {
                   $robocopyOptions += " /MT:8"
