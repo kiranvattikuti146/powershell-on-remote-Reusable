@@ -28,11 +28,12 @@ on:
 jobs:
   execute-powershell:
     runs-on: self-hosted
+
     steps:
       - name: Execute PowerShell Script
+        shell: pwsh
         run: |
           try {
-              # Assign inputs to variables
               $sourcePath = "${{ inputs.SourcePath }}"
               $machines = "${{ inputs.MachineNames }}"
               $username = "${{ inputs.AdminUserName }}"
@@ -41,32 +42,25 @@ jobs:
               $cleanTarget = ${{ inputs.CleanTarget }}
               $copyFilesInParallel = ${{ inputs.CopyFilesInParallel }}
 
-              # Convert password to secure string and create a credential object
+              # Secure credentials
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
-              # Map the network share
               Write-Host "Mapping network share: $targetPath"
               net use $targetPath /user:$username $password
 
-              # Clean target if requested
-              if ($cleanTarget) {
-                  Write-Host "Cleaning target path: $targetPath"
-                  Remove-Item -Path $targetPath\* -Recurse -Force
-              }
-
-              # Copy files using robocopy
+              # Construct robocopy base command
+              $robocopyOptions = "/MIR /Z /R:3 /W:5"
               if ($copyFilesInParallel) {
-                  Write-Host "Copying files in parallel from $sourcePath to $targetPath"
-                  Start-Job -ScriptBlock {
-                      robocopy $using:sourcePath $using:targetPath /MIR /Z /R:3 /W:5
-                  } | Wait-Job
-              } else {
-                  Write-Host "Copying files sequentially from $sourcePath to $targetPath"
-                  robocopy $sourcePath $targetPath /MIR /Z /R:3 /W:5
+                  $robocopyOptions += " /MT:8"
+              }
+              if ($cleanTarget) {
+                  $robocopyOptions += " /PURGE"
               }
 
-              # Unmap the network share
+              Write-Host "Running Robocopy with options: $robocopyOptions"
+              robocopy $sourcePath $targetPath $robocopyOptions
+
               Write-Host "Unmapping network share: $targetPath"
               net use $targetPath /delete
           } catch {
