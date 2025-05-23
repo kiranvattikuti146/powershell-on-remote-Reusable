@@ -43,6 +43,17 @@ jobs:
 
               Write-Host "Running Robocopy with options: $robocopyOptions"
               robocopy $sourcePath $targetPath @robocopyOptions
+
+              # Capture the exit code
+              $exitCode = $LASTEXITCODE
+
+              # Handle exit codes
+              if ($exitCode -eq 0 -or $exitCode -eq 1) {
+                  Write-Host "Robocopy completed successfully with exit code $exitCode."
+              } else {
+                  Write-Error "Robocopy failed with exit code $exitCode."
+                  exit $exitCode
+              }
           } catch {
               Write-Error "An error occurred: $_"
               exit 1
