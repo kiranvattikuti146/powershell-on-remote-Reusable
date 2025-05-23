@@ -36,18 +36,13 @@ jobs:
               $cleanTarget = [bool]::Parse("${{ inputs.CleanTarget }}")
               $copyInParallel = [bool]::Parse("${{ inputs.CopyFilesInParallel }}")
 
-              Write-Host "Mapping network share: $targetPath"
-              net use $targetPath
-
-              $robocopyOptions = "/MIR /Z /R:3 /W:5"
-              if ($copyInParallel) { $robocopyOptions += " /MT:8" }
-              if ($cleanTarget) { $robocopyOptions += " /PURGE" }
+              # Construct Robocopy options
+              $robocopyOptions = @("/MIR", "/Z", "/R:3", "/W:5")
+              if ($copyInParallel) { $robocopyOptions += "/MT:8" }
+              if ($cleanTarget -and -not $robocopyOptions.Contains("/MIR")) { $robocopyOptions += "/PURGE" }
 
               Write-Host "Running Robocopy with options: $robocopyOptions"
-              robocopy $sourcePath $targetPath $robocopyOptions
-
-              Write-Host "Unmapping network share: $targetPath"
-              net use $targetPath /delete
+              robocopy $sourcePath $targetPath @robocopyOptions
           } catch {
               Write-Error "An error occurred: $_"
               exit 1
