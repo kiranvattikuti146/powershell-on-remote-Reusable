@@ -1,4 +1,4 @@
-name: PowerShell Task
+name: Robocopy Task
 
 on:
   workflow_call:
@@ -12,9 +12,6 @@ on:
       AdminUserName:
         required: true
         type: string
-      AdminPassword:
-        required: true
-        type: string
       TargetPath:
         required: true
         type: string
@@ -24,6 +21,9 @@ on:
       CopyFilesInParallel:
         required: false
         type: boolean
+    secrets:
+      AdminPassword:
+        required: true
 
 jobs:
   execute-powershell:
@@ -37,12 +37,11 @@ jobs:
               $sourcePath = "${{ inputs.SourcePath }}"
               $machines = "${{ inputs.MachineNames }}"
               $username = "${{ inputs.AdminUserName }}"
-              $password = "${{ inputs.AdminPassword }}"
+              $password = "${{ secrets.AdminPassword }}"
               $targetPath = "${{ inputs.TargetPath }}"
               $cleanTarget = ${{ inputs.CleanTarget }}
               $copyFilesInParallel = ${{ inputs.CopyFilesInParallel }}
 
-              # Secure credentials
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
