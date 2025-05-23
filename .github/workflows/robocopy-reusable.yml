@@ -32,9 +32,9 @@ jobs:
               $machines = "${{ inputs.MachineNames }}"
               $targetPath = "${{ inputs.TargetPath }}"
 
-              # Use known booleans safely
-              $cleanTarget = [bool]::Parse("${{ inputs.CleanTarget 'false' }}")
-              $copyInParallel = [bool]::Parse("${{ inputs.CopyFilesInParallel 'false' }}")
+              # Use known booleans safely with default values
+              $cleanTarget = if (${{ inputs.CleanTarget }}) { ${{ inputs.CleanTarget }} } else { $false }
+              $copyInParallel = if (${{ inputs.CopyFilesInParallel }}) { ${{ inputs.CopyFilesInParallel }} } else { $false }
 
               Write-Host "Mapping network share: $targetPath"
               net use $targetPath
