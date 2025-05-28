@@ -1,69 +1,76 @@
-name: Robocopy Task
+name: PowerShell Task
 
 on:
   workflow_call:
     inputs:
-      SourcePath:
+      Machines:
         required: true
         type: string
-      MachineNames:
+      UserName:
         required: true
         type: string
-      AdminUserName:
+      UserPassword:
         required: true
         type: string
-      AdminPassword:
+      ScriptType:
         required: true
         type: string
-      TargetPath:
-        required: true
-        type: string
-      CleanTarget:
+      ScriptPath:
         required: false
-        type: boolean
-      CopyFilesInParallel:
+        type: string
+      InlineScript:
         required: false
-        type: boolean
+        type: string
+      ScriptArguments:
+        required: false
+        type: string
+      SessionVariables:
+        required: false
+        type: string
 
 jobs:
   execute-powershell:
     runs-on: self-hosted
-
     steps:
-      - name: Execute Robocopy via PowerShell
-        shell: pwsh
+      - name: Execute PowerShell Script
         run: |
           try {
-              $sourcePath = "${{ inputs.SourcePath }}"
-              $machines = "${{ inputs.MachineNames }}"
-              $adminUserName = "${{ inputs.AdminUserName }}"
-              $adminPassword = "${{ inputs.AdminPassword }}"
-              $targetPath = "${{ inputs.TargetPath }}"
+              # Assign inputs to variables
+              $machines = "${{ inputs.Machines }}"
+              $username = "${{ inputs.UserName }}"
+              $password = "${{ inputs.UserPassword }}"
+              $scriptType = "${{ inputs.ScriptType }}"
+              $scriptPath = "${{ inputs.ScriptPath }}"
+              $inlineScript = "${{ inputs.InlineScript }}"
+              $scriptArguments = "${{ inputs.ScriptArguments }}"
+              $sessionVariables = "${{ inputs.SessionVariables }}"
+              
+              # Convert password to secure string and create a credential object
+              $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+              $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
-              # Convert inputs to boolean values
-              $cleanTarget = [bool]::Parse("${{ inputs.CleanTarget }}")
-              $copyInParallel = [bool]::Parse("${{ inputs.CopyFilesInParallel }}")
+              # Add the specific IP address to TrustedHosts
+              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
 
-              # Construct Robocopy options
-              $robocopyOptions = @("/MIR", "/Z", "/R:3", "/W:5")
-              if ($copyInParallel) { $robocopyOptions += "/MT:8" }
-              if ($cleanTarget -and -not $robocopyOptions.Contains("/MIR")) { $robocopyOptions += "/PURGE" }
+              # Test connectivity to the remote machine
+              Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
 
-              Write-Host "Admin Username: $adminUserName"
-              Write-Host "Admin Password: $adminPassword"
-              Write-Host "Running Robocopy with options: $robocopyOptions"
-
-              robocopy $sourcePath $targetPath @robocopyOptions
-
-              # Capture the exit code
-              $exitCode = $LASTEXITCODE
-
-              # Handle exit codes
-              if ($exitCode -eq 0 -or $exitCode -eq 1) {
-                  Write-Host "Robocopy completed successfully with exit code $exitCode."
+              # Execute based on ScriptType
+              if ($scriptType -eq 'FilePath') {
+                  if (-not $scriptPath) {
+                      throw "ScriptPath is required when ScriptType is 'FilePath'."
+                  }
+                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments
+              } elseif ($scriptType -eq 'Inline') {
+                  if (-not $inlineScript) {
+                      throw "InlineScript is required when ScriptType is 'Inline'."
+                  }
+                  $scriptBlock = [ScriptBlock]::Create($inlineScript)
+                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose
+                  Write-Output $pw_result
+                  Write-Host $pw_result
               } else {
-                  Write-Error "Robocopy failed with exit code $exitCode."
-                  exit $exitCode
+                  throw "Invalid ScriptType provided. Valid values are 'FilePath' or 'Inline'."
               }
           } catch {
               Write-Error "An error occurred: $_"
