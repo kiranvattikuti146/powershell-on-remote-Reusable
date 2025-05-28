@@ -1,3 +1,11 @@
+# ====================================================================================================
+#           Task        : PowerShell on target machines
+#           Description : Use this task to execute PowerShell scripts on remote machines using PSSession and Invoke-Command for remoting.
+#           Version     : V3
+#           Author      : kiran
+#           Help        :https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/powershell-on-target-machines-v3?view=azure-pipelines
+# ==================================================================================================== 
+
 name: PowerShell Task
 
 on:
@@ -27,33 +35,6 @@ on:
       SessionVariables:
         required: false
         type: string
-      CommunicationProtocol:
-        required: false
-        type: string
-        default: "Https"
-      AuthenticationMechanism:
-        required: false
-        type: string
-        default: "Default"
-      ErrorActionPreference:
-        required: false
-        type: string
-        default: "stop"
-      failOnStderr:
-        required: false
-        type: boolean
-        default: false
-      ignoreLASTEXITCODE:
-        required: false
-        type: boolean
-        default: false
-      WorkingDirectory:
-        required: false
-        type: string
-      RunPowershellInParallel:
-        required: false
-        type: boolean
-        default: true
 
 jobs:
   execute-powershell:
@@ -71,23 +52,13 @@ jobs:
               $inlineScript = "${{ inputs.InlineScript }}"
               $scriptArguments = "${{ inputs.ScriptArguments }}"
               $sessionVariables = "${{ inputs.SessionVariables }}"
-              $communicationProtocol = "${{ inputs.CommunicationProtocol }}"
-              $authenticationMechanism = "${{ inputs.AuthenticationMechanism }}"
-              $errorActionPreference = "${{ inputs.ErrorActionPreference }}"
-              $failOnStderr = "${{ inputs.failOnStderr }}"
-              $ignoreLASTEXITCODE = "${{ inputs.ignoreLASTEXITCODE }}"
-              $workingDirectory = "${{ inputs.WorkingDirectory }}"
-              $runPowershellInParallel = "${{ inputs.RunPowershellInParallel }}"
-
-              # Set ErrorActionPreference
-              $ErrorActionPreference = $errorActionPreference
-
+              
               # Convert password to secure string and create a credential object
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
               # Add the specific IP address to TrustedHosts
-              Set-Item -Path WSMan:localhostClientTrustedHosts -Value $machines -Force
+              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
 
               # Test connectivity to the remote machine
               Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
@@ -97,26 +68,17 @@ jobs:
                   if (-not $scriptPath) {
                       throw "ScriptPath is required when ScriptType is 'FilePath'."
                   }
-                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments -Authentication $authenticationMechanism -UseSSL:($communicationProtocol -eq 'Https')
+                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments
               } elseif ($scriptType -eq 'Inline') {
                   if (-not $inlineScript) {
                       throw "InlineScript is required when ScriptType is 'Inline'."
                   }
                   $scriptBlock = [ScriptBlock]::Create($inlineScript)
-                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Authentication $authenticationMechanism -UseSSL:($communicationProtocol -eq 'Https') -Verbose
+                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose
                   Write-Output $pw_result
                   Write-Host $pw_result
               } else {
                   throw "Invalid ScriptType provided. Valid values are 'FilePath' or 'Inline'."
-              }
-
-              # Handle failOnStderr and ignoreLASTEXITCODE
-              if ($failOnStderr -and $pw_result) {
-                  throw "Errors detected in the error pipeline."
-              }
-
-              if (-not $ignoreLASTEXITCODE) {
-                  exit $LASTEXITCODE
               }
           } catch {
               Write-Error "An error occurred: $_"
