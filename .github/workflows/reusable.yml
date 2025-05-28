@@ -2,9 +2,9 @@
 #           Task        : PowerShell on target machines
 #           Description : Use this task to execute PowerShell scripts on remote machines using PSSession and Invoke-Command for remoting.
 #           Version     : V3
-#           Author      : kiran
-#           Help        :https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/powershell-on-target-machines-v3?view=azure-pipelines
-# ==================================================================================================== 
+#           Author      : Kiran
+#           Help        : https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/powershell-on-target-machines-v3?view=azure-pipelines
+# ====================================================================================================
 
 name: PowerShell Task
 
@@ -12,12 +12,6 @@ on:
   workflow_call:
     inputs:
       Machines:
-        required: true
-        type: string
-      UserName:
-        required: true
-        type: string
-      UserPassword:
         required: true
         type: string
       ScriptType:
@@ -35,18 +29,24 @@ on:
       SessionVariables:
         required: false
         type: string
+    secrets:
+      username:
+        required: true
+      password:
+        required: true
 
 jobs:
   execute-powershell:
     runs-on: self-hosted
     steps:
       - name: Execute PowerShell Script
+        shell: pwsh
         run: |
           try {
               # Assign inputs to variables
               $machines = "${{ inputs.Machines }}"
-              $username = "${{ inputs.UserName }}"
-              $password = "${{ inputs.UserPassword }}"
+              $username = "${{ secrets.username }}"
+              $password = "${{ secrets.password }}"
               $scriptType = "${{ inputs.ScriptType }}"
               $scriptPath = "${{ inputs.ScriptPath }}"
               $inlineScript = "${{ inputs.InlineScript }}"
@@ -61,6 +61,7 @@ jobs:
               Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
 
               # Test connectivity to the remote machine
+              Write-Host "Testing connectivity to $machines..."
               Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
 
               # Execute based on ScriptType
@@ -68,15 +69,17 @@ jobs:
                   if (-not $scriptPath) {
                       throw "ScriptPath is required when ScriptType is 'FilePath'."
                   }
+                  Write-Host "Executing script from file path: $scriptPath"
                   Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments
               } elseif ($scriptType -eq 'Inline') {
                   if (-not $inlineScript) {
                       throw "InlineScript is required when ScriptType is 'Inline'."
                   }
+                  Write-Host "Executing inline script..."
                   $scriptBlock = [ScriptBlock]::Create($inlineScript)
                   $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose
                   Write-Output $pw_result
-                  Write-Host $pw_result
+                  Write-Host "Script execution result: $pw_result"
               } else {
                   throw "Invalid ScriptType provided. Valid values are 'FilePath' or 'Inline'."
               }
