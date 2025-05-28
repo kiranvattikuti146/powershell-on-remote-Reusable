@@ -27,6 +27,37 @@ on:
       SessionVariables:
         required: false
         type: string
+      CommunicationProtocol:
+        required: false
+        type: string
+        default: "Https"
+      AuthenticationMechanism:
+        required: false
+        type: string
+        default: "Default"
+      NewPsSessionOptionArguments:
+        required: false
+        type: string
+        default: "-SkipCACheck -IdleTimeout 7200000 -OperationTimeout 0 -OutputBufferingMode Block"
+      ErrorActionPreference:
+        required: false
+        type: string
+        default: "stop"
+      failOnStderr:
+        required: false
+        type: boolean
+        default: false
+      ignoreLASTEXITCODE:
+        required: false
+        type: boolean
+        default: false
+      WorkingDirectory:
+        required: false
+        type: string
+      RunPowershellInParallel:
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   execute-powershell:
@@ -44,13 +75,27 @@ jobs:
               $inlineScript = "${{ inputs.InlineScript }}"
               $scriptArguments = "${{ inputs.ScriptArguments }}"
               $sessionVariables = "${{ inputs.SessionVariables }}"
-              
+              $communicationProtocol = "${{ inputs.CommunicationProtocol }}"
+              $authenticationMechanism = "${{ inputs.AuthenticationMechanism }}"
+              $newPsSessionOptionArguments = "${{ inputs.NewPsSessionOptionArguments }}"
+              $errorActionPreference = "${{ inputs.ErrorActionPreference }}"
+              $failOnStderr = "${{ inputs.failOnStderr }}"
+              $ignoreLASTEXITCODE = "${{ inputs.ignoreLASTEXITCODE }}"
+              $workingDirectory = "${{ inputs.WorkingDirectory }}"
+              $runPowershellInParallel = "${{ inputs.RunPowershellInParallel }}"
+
+              # Set advanced session options
+              $sessionOptions = New-PSSessionOption $newPsSessionOptionArguments
+
+              # Set ErrorActionPreference
+              $ErrorActionPreference = $errorActionPreference
+
               # Convert password to secure string and create a credential object
               $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
               $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
               # Add the specific IP address to TrustedHosts
-              Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value $machines -Force
+              Set-Item -Path WSMan:localhostClientTrustedHosts -Value $machines -Force
 
               # Test connectivity to the remote machine
               Test-Connection -ComputerName $machines -Count 1 -ErrorAction Stop
@@ -60,17 +105,26 @@ jobs:
                   if (-not $scriptPath) {
                       throw "ScriptPath is required when ScriptType is 'FilePath'."
                   }
-                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments
+                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments -SessionOption $sessionOptions -Authentication $authenticationMechanism -UseSSL:($communicationProtocol -eq 'Https')
               } elseif ($scriptType -eq 'Inline') {
                   if (-not $inlineScript) {
                       throw "InlineScript is required when ScriptType is 'Inline'."
                   }
                   $scriptBlock = [ScriptBlock]::Create($inlineScript)
-                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Verbose
+                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -SessionOption $sessionOptions -Authentication $authenticationMechanism -UseSSL:($communicationProtocol -eq 'Https') -Verbose
                   Write-Output $pw_result
                   Write-Host $pw_result
               } else {
                   throw "Invalid ScriptType provided. Valid values are 'FilePath' or 'Inline'."
+              }
+
+              # Handle failOnStderr and ignoreLASTEXITCODE
+              if ($failOnStderr -and $pw_result) {
+                  throw "Errors detected in the error pipeline."
+              }
+
+              if (-not $ignoreLASTEXITCODE) {
+                  exit $LASTEXITCODE
               }
           } catch {
               Write-Error "An error occurred: $_"
