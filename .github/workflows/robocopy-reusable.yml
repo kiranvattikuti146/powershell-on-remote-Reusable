@@ -35,10 +35,6 @@ on:
         required: false
         type: string
         default: "Default"
-      NewPsSessionOptionArguments:
-        required: false
-        type: string
-        default: "-SkipCACheck -IdleTimeout 7200000 -OperationTimeout 0 -OutputBufferingMode Block"
       ErrorActionPreference:
         required: false
         type: string
@@ -77,15 +73,11 @@ jobs:
               $sessionVariables = "${{ inputs.SessionVariables }}"
               $communicationProtocol = "${{ inputs.CommunicationProtocol }}"
               $authenticationMechanism = "${{ inputs.AuthenticationMechanism }}"
-              $newPsSessionOptionArguments = "${{ inputs.NewPsSessionOptionArguments }}"
               $errorActionPreference = "${{ inputs.ErrorActionPreference }}"
               $failOnStderr = "${{ inputs.failOnStderr }}"
               $ignoreLASTEXITCODE = "${{ inputs.ignoreLASTEXITCODE }}"
               $workingDirectory = "${{ inputs.WorkingDirectory }}"
               $runPowershellInParallel = "${{ inputs.RunPowershellInParallel }}"
-
-              # Set advanced session options
-              $sessionOptions = New-PSSessionOption $newPsSessionOptionArguments
 
               # Set ErrorActionPreference
               $ErrorActionPreference = $errorActionPreference
@@ -105,13 +97,13 @@ jobs:
                   if (-not $scriptPath) {
                       throw "ScriptPath is required when ScriptType is 'FilePath'."
                   }
-                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments -SessionOption $sessionOptions -Authentication $authenticationMechanism -UseSSL:($communicationProtocol -eq 'Https')
+                  Invoke-Command -ComputerName $machines -Credential $credential -FilePath $scriptPath -ArgumentList $scriptArguments -Authentication $authenticationMechanism -UseSSL:($communicationProtocol -eq 'Https')
               } elseif ($scriptType -eq 'Inline') {
                   if (-not $inlineScript) {
                       throw "InlineScript is required when ScriptType is 'Inline'."
                   }
                   $scriptBlock = [ScriptBlock]::Create($inlineScript)
-                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -SessionOption $sessionOptions -Authentication $authenticationMechanism -UseSSL:($communicationProtocol -eq 'Https') -Verbose
+                  $pw_result = Invoke-Command -ComputerName $machines -Credential $credential -ScriptBlock $scriptBlock -Authentication $authenticationMechanism -UseSSL:($communicationProtocol -eq 'Https') -Verbose
                   Write-Output $pw_result
                   Write-Host $pw_result
               } else {
